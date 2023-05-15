@@ -1,7 +1,8 @@
-import 'package:map_model/annotation.dart';
+part of annotation;
 
 class ModelBinding {
   final List<Property> properties;
 
   const ModelBinding([this.properties = const []]);
+
 }

@@ -1,6 +1,6 @@
 builders:
   model_binding_builder:
-    import: 'package:model_binding_builder/builder.dart'
+    import: 'package:model_binding_builder/model_binding_builder.dart'
     builder_factories: [ 'modelBindingBuilder' ]
     build_extensions: { ".dart": [ "model_binding.g.part" ] }
     auto_apply: all_packages
