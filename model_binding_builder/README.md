@@ -186,6 +186,8 @@ Widget build(BuildContext context) => Scaffold(
 - `BindingSupport.of(context)` can get State with BindingSupport instance.
 - `Binding.of(context)` can get binding model instance. equivalent to `BindingSupport.of(context).bind`
 
+`Binding. of (context)` used for cross level calls to widget trees
+
 ## Generate
 
 ```shell
