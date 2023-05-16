@@ -73,7 +73,7 @@ class YourBinding extends _YourBindingImpl {
 
 ### use ModelBinding
 
-<img src="images/data_binding.gif">
+<img src="../images/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -102,6 +102,7 @@ TextFieldBinding(
 TextFieldBinding(
   binding: dataBinding,
   property: 'nullableString',
+  context: context,
 );
 ```
 
@@ -109,7 +110,7 @@ context in Binding class, can be partially refreshed.
 
 ### use WidgetBinding
 
-<img src="images/widget_binding.gif">
+<img src="../images/widget_binding.gif">
 
 ```dart
 @override
