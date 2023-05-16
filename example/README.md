@@ -180,6 +180,8 @@ Widget build(BuildContext context) => Scaffold(
 
 ### Advanced
 - `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
+- `RefreshableBuilder.of(context)` can get RefreshableBuilder instance. `RefreshableBuilder.binding` can get model instance.
+- `RefreshableBuilder.rebuild(context)` can local refresh ui.
 
 ## Generate
 
