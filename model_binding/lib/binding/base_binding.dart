@@ -24,6 +24,16 @@ abstract class Binding {
   Map<String, dynamic> export() => _data.export();
 
   void dispose() => _data.dispose();
+
+  static B? of<T extends BindingSupport, B extends Binding>(BuildContext context) {
+    if (context is StatefulElement) {
+      var state = context.state;
+      if (state is T) {
+        return state.binding as B;
+      }
+    }
+    return context.findAncestorStateOfType<T>()?.binding as B?;
+  }
 }
 
 String Function(dynamic num) intConvert({String nullValue = ''}) {

@@ -73,7 +73,7 @@ class WidgetBindingState extends State<WidgetBindingPage>
                     setState(() {});
                   },
                   child: const Text('refresh outside')),
-              Text('outside refresh point：${binding.nullableString ?? ''}'),
+              Text('outside refresh point：${Binding.of<WidgetBindingState, YourBinding>(context)?.nullableString ?? ''}'),
             ],
           ),
         ),
