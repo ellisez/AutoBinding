@@ -1,9 +1,10 @@
 part of binding;
 
+typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
 abstract class Binding {
-  final MapBinding _data;
+  late MapBinding _data;
 
   Binding(this._data);
 
@@ -15,6 +16,10 @@ abstract class Binding {
   }) =>
       _data.textField(field,
           value: value, retainSelection: retainSelection, convert: convert);
+
+  void addListener(String field, VoidCallback listener) {
+    _data.addListener(field, listener);
+  }
 
   Map<String, dynamic> export() => _data.export();
 
@@ -28,12 +33,4 @@ String Function(dynamic num) intConvert({String nullValue = ''}) {
 String Function(dynamic stringList) stringListConvert(
     {String nullValue = '', String sep = ' '}) {
   return (stringList) => stringList == null ? nullValue : stringList.join(sep);
-}
-
-class Ref {
-  dynamic data;
-  ValueNotifier? notifier;
-  dynamic Function(dynamic)? convert;
-
-  Ref(this.data, {this.notifier, this.convert});
 }

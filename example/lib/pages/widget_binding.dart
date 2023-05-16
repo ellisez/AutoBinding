@@ -1,43 +1,81 @@
 import 'package:example/your_model.dart';
 import 'package:flutter/material.dart';
+import 'package:model_binding/binding/binding.dart';
 
 class WidgetBindingPage extends StatefulWidget {
   const WidgetBindingPage({super.key});
 
   @override
-  State<StatefulWidget> createState() => DataBindingState();
+  State<StatefulWidget> createState() => WidgetBindingState();
 }
 
-class DataBindingState extends State<WidgetBindingPage> {
-  late YourBinding dataBinding;
+class WidgetBindingState extends State<WidgetBindingPage>
+    with BindingSupport<WidgetBindingPage, YourBinding> {
+  @override
+  late YourBinding binding;
+  RefreshMode mode = RefreshMode.self;
 
   @override
   void initState() {
-    dataBinding = YourBinding();
+    binding = YourBinding();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      automaticallyImplyLeading: true,
-      title: const Text('Data binding'),
-    ),
-    body: Center(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          title: const Text('Widget binding'),
+        ),
+        body: Center(
           child: Column(
             children: [
-              const Text('Free Binding', style: TextStyle(fontWeight: FontWeight.bold),),
-              const Divider(),
-              TextField(
-                controller:
-                    dataBinding.textField(dataBinding.nullableString ?? ''),
-                onChanged: (value) {
-                  dataBinding.nullableString = value;
-                },
+              RefreshableBuilder(
+                builder: (context) => Column(
+                  children: [
+                    RadioListTile<RefreshMode>(
+                        title: const Text('self: only control rebuild'),
+                        value: RefreshMode.self,
+                        groupValue: mode,
+                        onChanged: (value) {
+                          mode = value!;
+                          setState(() {});
+                        }),
+                    RadioListTile<RefreshMode>(
+                        title: const Text('partially: find RefreshableBuilder to rebuild'),
+                        value: RefreshMode.partially,
+                        groupValue: mode,
+                        onChanged: (value) {
+                          mode = value!;
+                          setState(() {});
+                        }),
+                    const Text(
+                      'Both self and partially based on context arguments',
+                      style: TextStyle(),
+                    ),
+                    const Divider(),
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      child: TextFieldBinding(
+                        binding: binding,
+                        property: 'nullableString',
+                        mode: mode,
+                        //context: context, // base on from
+                      ),
+                    ),
+                    Text('partially refresh point：${binding.nullableString ?? ''}'),
+                  ],
+                ),
               ),
-              Text(dataBinding.nullableString ?? ''),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  child: const Text('refresh outside')),
+              Text('outside refresh point：${binding.nullableString ?? ''}'),
             ],
           ),
         ),
-  );
+      );
 }

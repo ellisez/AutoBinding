@@ -1,10 +1,13 @@
 part of binding;
 
+enum RefreshMode { self, partially }
+
 class TextFieldBinding extends StatefulWidget {
   final Binding binding;
   final String property;
   final TextFieldConvert? convert;
   final BuildContext? context;
+  final RefreshMode mode;
 
   /////
   final FocusNode? focusNode;
@@ -67,6 +70,7 @@ class TextFieldBinding extends StatefulWidget {
     required this.property,
     this.convert,
     this.context,
+    this.mode = RefreshMode.self,
     super.key,
     //// raw TextFormField
     this.focusNode,
@@ -135,38 +139,39 @@ class TextFieldBinding extends StatefulWidget {
 }
 
 class TextFieldBindingState extends State<TextFieldBinding> {
-  late Binding binding;
-  late String property;
-  TextFieldConvert? convert;
-  BuildContext? specContext;
-
-  @override
-  initState() {
-    binding = widget.binding;
-    property = widget.property;
-    convert = widget.convert;
-    specContext = widget.context;
-
-    super.initState();
-  }
-
   onChanged(value) {
     if (value == null) return;
     var newValue = value;
-    if (convert != null) newValue = convert!(value);
-    var oldValue = binding._data[property];
+    if (widget.convert != null) newValue = widget.convert!(value);
+    var oldValue = widget.binding._data[widget.property];
     if (newValue != oldValue) {
-      binding._data[property] = value;
+      widget.binding._data[widget.property] = value;
       if (widget.onChanged != null) widget.onChanged!(value);
-      if (specContext != null) {
-        if (specContext is StatefulElement) {
-          (specContext as StatefulElement).state.setState(() {});
-        } else {
-          specContext!.findAncestorStateOfType()!.setState(() {});
+
+      var widgetContext = widget.context;
+      if (widget.mode == RefreshMode.self) {
+        if (widgetContext != null) {
+          if (widgetContext is StatefulElement) {
+            widgetContext.state.setState(() {});
+            return;
+          } else {
+            var ancestorState = widgetContext.findAncestorStateOfType();
+            if (ancestorState != null) {
+              ancestorState.setState(() {});
+              return;
+            }
+          }
         }
       } else {
-        setState(() {});
+        var useContext = context;
+        if (widgetContext != null) {
+          useContext = widgetContext;
+        }
+        if (RefreshableBuilder.rebuild(useContext)) {
+          return;
+        }
       }
+      setState(() {});
     }
   }
 
@@ -224,9 +229,9 @@ class TextFieldBindingState extends State<TextFieldBinding> {
         contextMenuBuilder: widget.contextMenuBuilder,
         spellCheckConfiguration: widget.spellCheckConfiguration,
         magnifierConfiguration: widget.magnifierConfiguration,
-        controller: binding.textField(property,
-            value: binding._data[property],
+        controller: widget.binding.textField(widget.property,
+            value: widget.binding._data[widget.property],
             retainSelection: true,
-            convert: convert),
+            convert: widget.convert),
       );
 }

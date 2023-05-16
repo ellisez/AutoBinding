@@ -34,19 +34,23 @@ class DataBindingState extends State<DataBindingPage> {
                       'Free Binding',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
+                    const Text(
+                      'use raw widget',
+                      style: TextStyle(),
+                    ),
                     const Divider(),
                     Container(
                       margin: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 10),
                       child: TextField(
-                        controller: dataBinding.textField('nullableString'),
-                        onChanged: (value) {
+                        controller: dataBinding.textField('nullableString'),// must be
+                        onChanged: (value) {// must be
                           dataBinding.nullableString = value;
                           setState(() {});
                         },
                       ),
                     ),
-                    Text(dataBinding.nullableString ?? ''),
+                    Text('外部更新点1：${dataBinding.nullableString ?? ''}'),
                   ],
                 ),
               ),
@@ -56,8 +60,12 @@ class DataBindingState extends State<DataBindingPage> {
                 child: Column(
                   children: [
                     const Text(
-                      'Only Widget Self Binding',
+                      'Minimum Binding',
                       style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'use TextFieldBinding, only refresh controller',
+                      style: TextStyle(),
                     ),
                     const Divider(),
                     Container(
@@ -68,7 +76,7 @@ class DataBindingState extends State<DataBindingPage> {
                         property: 'nullableString',
                       ),
                     ),
-                    Text(dataBinding.nullableString ?? ''),
+                    Text('外部更新点2：${dataBinding.nullableString ?? ''}'),
                   ],
                 ),
               ),
@@ -78,8 +86,12 @@ class DataBindingState extends State<DataBindingPage> {
                 child: Column(
                   children: [
                     const Text(
-                      'All Widget Self Binding',
+                      'Custom Binding',
                       style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'use TextFieldBinding, specify context',
+                      style: TextStyle(),
                     ),
                     const Divider(),
                     Container(
@@ -88,10 +100,11 @@ class DataBindingState extends State<DataBindingPage> {
                       child: TextFieldBinding(
                         binding: dataBinding,
                         property: 'nullableString',
+                        /// Specify the context to implement local refresh
                         context: context,
                       ),
                     ),
-                    Text(dataBinding.nullableString ?? ''),
+                    Text('外部更新点3：${dataBinding.nullableString ?? ''}'),
                   ],
                 ),
               ),

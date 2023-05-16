@@ -1,64 +1,53 @@
 part of binding;
 
 class MapBinding<T> with MapMixin<String, T> {
-  late Map<String, Ref> _data;
+  late Map<String, dynamic> _data;
+  Map<String, ValueNotifier> _notifiers = {};
+  Map<String, Convert> _converts = {};
 
-  MapBinding([Map<String, dynamic>? data]) {
-    _data = {};
-    if (data != null) {
-      data.forEach((key, value) {
-        _data[key] = Ref(value);
-      });
-    }
-  }
+  MapBinding([Map<String, dynamic>? data]) : _data = data ?? {};
 
   @override
   operator [](Object? key) {
-    var ref = _data[key];
-    if (ref != null) {
-      return ref.data;
-    }
-    return null;
+    return _data[key];
   }
 
   @override
   void operator []=(String key, value) {
-    var ref = _data[key];
-    if (ref == null) {
-      ref = Ref(value);
-      _data[key] = ref;
-      return;
-    }
+    var oldValue = _data[key];
 
-    var notifier = ref.notifier;
+    if (oldValue == value) return;
+    _data[key] = value;
+
+    var notifier = _notifiers[key];
     if (notifier != null) {
-      var val = value;
-      var getter = ref.convert;
-      if (getter != null) {
-        val = getter(value);
+      var toNotifyValue = value;
+      var convert = _converts[key];
+      if (convert != null) {
+        toNotifyValue = convert(value);
       }
-      if (notifier is TextEditingController && val is String?) {
+
+      if (notifier is TextEditingController && toNotifyValue is String?) {
         var selection = notifier.selection;
-        if (val != null && selection.end >= val.length) {
-          selection = TextSelection.collapsed(offset: val.length);
+        if (toNotifyValue != null && selection.end >= toNotifyValue.length) {
+          selection = TextSelection.collapsed(offset: toNotifyValue.length);
         }
-        notifier.text = val ?? '';
+        notifier.text = toNotifyValue ?? '';
         notifier.selection = selection;
       } else {
-        notifier.value = val;
+        notifier.value = toNotifyValue;
       }
     }
-    ref.data = value;
   }
 
   @override
   void clear() {
-    _data.forEach((key, value) {
-      if (value.notifier != null) {
-        value.notifier!.dispose();
-      }
+    _notifiers.forEach((key, value) {
+      value.dispose();
     });
     _data.clear();
+    _notifiers.clear();
+    _converts.clear();
   }
 
   @override
@@ -67,63 +56,63 @@ class MapBinding<T> with MapMixin<String, T> {
   @override
   remove(Object? key) {
     var item = _data.remove(key);
-    if (item != null && item.notifier != null) {
-      item.notifier!.dispose();
-    }
-    return item?.data;
+    _notifiers.remove(key);
+    _converts.remove(key);
+    return item;
   }
 
   TextEditingController textField(
-      String field, {
-        dynamic value,
-        bool retainSelection = true,
-        String Function(dynamic)? convert,
-      }) {
-    var ref = _data[field];
-    if (value == null && ref != null) {
-      value = ref.data;
-    }
-    var convertValue = value;
+    String field, {
+    dynamic value,
+    bool retainSelection = true,
+    String Function(dynamic)? convert,
+  }) {
     if (convert != null) {
-      convertValue = convert(value);
+      _converts[field] = convert;
     }
-    convertValue ??= '';
 
-    if (ref == null) {
-      var notifier = TextEditingController(text: convertValue);
-      ref = Ref(value, notifier: notifier, convert: convert);
-      _data[field] = ref;
-      return notifier;
+    var oldValue = _data[field];
+    var newValue = oldValue;
+    if (value != null) {
+      newValue = oldValue;
     }
-    var notifier = ref.notifier;
+
+    String getNotifierValue() {
+      var toNotifierValue = newValue;
+      if (convert != null) {
+        toNotifierValue = convert(newValue);
+      }
+      toNotifierValue ??= '';
+      return toNotifierValue;
+    }
+
+    var notifier = _notifiers[field];
     if (notifier == null) {
-      notifier = TextEditingController(text: convertValue);
-      ref.notifier = notifier;
+      notifier = TextEditingController(text: getNotifierValue());
+      _notifiers[field] = notifier;
     } else {
-      if (notifier is TextEditingController) {
-        if (convertValue != notifier.text) {
-          var selection = notifier.selection;
-          notifier.text = convertValue ?? '';
-          if (retainSelection) {
-            if (convertValue != null && selection.end >= convertValue.length) {
-              selection = TextSelection.collapsed(offset: convertValue.length);
+      if (newValue != oldValue) {
+        if (notifier is TextEditingController) {
+          var notifierValue = getNotifierValue();
+          if (notifierValue != notifier.text) {
+            var selection = notifier.selection;
+            notifier.text = notifierValue;
+            if (retainSelection) {
+              if (selection.end >= notifierValue.length) {
+                selection =
+                    TextSelection.collapsed(offset: notifierValue.length);
+              }
+              notifier.selection = selection;
             }
-            notifier.selection = selection;
           }
         }
       }
     }
-    if (ref.convert != convert) {
-      ref.convert = convert;
-    }
-    if (ref.data != value) {
-      ref.data = value;
-    }
     return notifier as TextEditingController;
   }
 
-  void addListener(String key, VoidCallback listener) {
-    _data[key]?.notifier?.addListener(listener);
+  void addListener(String field, VoidCallback listener) {
+    _data[field]?.notifier?.addListener(listener);
   }
 
   void dispose() {
@@ -142,8 +131,8 @@ class MapBinding<T> with MapMixin<String, T> {
         continue;
       }
       var data = ref.data;
-      if (data is ListBinding) data=data.export();
-      if (data is MapBinding) data=data.export();
+      // if (data is ListBinding) data = data.export();
+      if (data is MapBinding) data = data.export();
       newMap[key] = data;
     }
     return newMap;

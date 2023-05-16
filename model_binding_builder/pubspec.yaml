@@ -1,15 +1,15 @@
 name: model_binding_builder
-description: A sample command-line application.
+description: ModelBinding is a Widget data binding framework implemented using MapModel, and its biggest advantage is that modifying data can automatically refresh corresponding Widgets.
 version: 1.0.0
-
-publish_to: none
+homepage: 'https://github.com/ellisez/ModelBinding'
 
 environment:
   sdk: '>=2.19.6 <4.0.0'
 
 dependencies:
-  model_binding:
-    path: ../model_binding
+  build: ^2.4.0
+  source_gen: ^1.3.2
+  model_binding: ^1.0.0
   map_model_builder: ^1.0.9
 
 dev_dependencies:

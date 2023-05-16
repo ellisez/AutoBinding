@@ -45,23 +45,29 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
+      body: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pushNamed('/dataBinding');
                 },
                 child: const Text('DataBinding Example')),
-            const SizedBox(height: 20),
-            ElevatedButton(
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pushNamed('/widgetBinding');
                 },
                 child: const Text('WidgetBinding Example')),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
