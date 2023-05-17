@@ -3,3 +3,6 @@
 
 ## 1.0.1
 - Support Binding.of(context).
+
+## 1.0.2
+- Add example MapBinding & ListBinding.

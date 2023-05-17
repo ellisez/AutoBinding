@@ -74,7 +74,8 @@ class MapBinding<T> with MapMixin<String, T> {
     var oldValue = _data[field];
     var newValue = oldValue;
     if (value != null) {
-      newValue = oldValue;
+      newValue = value;
+      _data[field] = value;
     }
 
     String getNotifierValue() {
@@ -123,15 +124,14 @@ class MapBinding<T> with MapMixin<String, T> {
     var newMap = <String, T>{};
     for (var entry in _data.entries) {
       var key = entry.key;
-      var ref = entry.value;
+      var data = entry.value;
       if (includes != null && !includes.contains(key)) {
         continue;
       }
       if (excludes != null && excludes.contains(key)) {
         continue;
       }
-      var data = ref.data;
-      // if (data is ListBinding) data = data.export();
+      if (data is ListBinding) data = data.export();
       if (data is MapBinding) data = data.export();
       newMap[key] = data;
     }

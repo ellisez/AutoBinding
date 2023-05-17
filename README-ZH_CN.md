@@ -74,6 +74,27 @@ class YourBinding extends _YourBindingImpl {
 
 ```
 
+### use MapBinding & ListBinding
+
+```dart
+var mapBinding = MapBinding();
+  mapBinding['a'] = 12;
+  mapBinding['b'] = '34';
+  mapBinding['c'] = [56, '78'];
+
+  mapBinding['d'] = ListBinding<int>([90, 01]);// use generic
+  mapBinding['e'] = MapBinding<String>({// use generic
+    'f' : '23',
+    'g' : '45',
+  });
+
+  // export offline data
+  var export = mapBinding.export(includes: {'a','b', 'd', 'e'}, excludes: {'b'});
+  var str = const JsonEncoder().convert(export);
+  // console see '{"a":12,"d":[90,1],"e":{"f":"23","g":"45"}}'
+  debugPrint(str);
+```
+
 ### use ModelBinding
 
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/068d8ac5f0f240b8b14e3aef2a07b616.gif#pic_center)
