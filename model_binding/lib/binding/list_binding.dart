@@ -5,8 +5,25 @@ class ListBinding<T> with ListMixin<T> {
   List<ValueNotifier?> _notifiers = [];
   List<Convert?> _converts = [];
 
-  ListBinding([List? list]):
-    _list = list ??[];
+  ListBinding([List? list]) : _list = list ?? [];
+
+  void setData(List<dynamic> list, {bool? isClear}) {
+    if (true == isClear) {
+      _notifiers.forEach((item) => item?.dispose());
+      _notifiers.clear();
+      _converts.clear();
+    }
+    _list = list;
+  }
+
+  setNotifier(int index, ValueNotifier notifier) =>
+      _notifiers[index] = notifier;
+
+  bool? removeNotifier(int index) => _notifiers.remove(index);
+
+  setConvert(int index, Convert convert) => _converts[index] = convert;
+
+  bool? removeConvert(int index) => _converts.remove(index);
 
   @override
   int get length => _list.length;
@@ -50,11 +67,11 @@ class ListBinding<T> with ListMixin<T> {
   }
 
   TextEditingController textField(
-      int index, {
-        dynamic value,
-        bool retainSelection = true,
-        String Function(dynamic)? convert,
-      }) {
+    int index, {
+    dynamic value,
+    bool retainSelection = true,
+    String Function(dynamic)? convert,
+  }) {
     if (convert != null) {
       _converts[index] = convert;
     }
@@ -114,8 +131,8 @@ class ListBinding<T> with ListMixin<T> {
       if (excludes != null && excludes.contains(i)) {
         continue;
       }
-      if (data is ListBinding) data=data.export();
-      if (data is MapBinding) data=data.export();
+      if (data is ListBinding) data = data.export();
+      if (data is MapBinding) data = data.export();
       newList.add(data);
     }
     return newList;
@@ -123,5 +140,8 @@ class ListBinding<T> with ListMixin<T> {
 
   void dispose() {
     clear();
+    _notifiers.forEach((item) => item?.dispose());
+    _notifiers.clear();
+    _converts.clear();
   }
 }

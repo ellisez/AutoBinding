@@ -6,3 +6,6 @@
 
 ## 1.0.2
 - Add example MapBinding & ListBinding.
+
+## 1.0.3
+- Add rebind(data).

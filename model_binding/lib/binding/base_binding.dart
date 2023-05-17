@@ -4,9 +4,11 @@ typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
 abstract class Binding {
-  late MapBinding _data;
+  final MapBinding _data;
 
   Binding(this._data);
+
+  void rebind(Map<String, dynamic> data, {bool? isClear}) => _data.setData(data, isClear: isClear);
 
   TextEditingController textField(
     String field, {
@@ -25,7 +27,8 @@ abstract class Binding {
 
   void dispose() => _data.dispose();
 
-  static B? of<T extends BindingSupport, B extends Binding>(BuildContext context) {
+  static B? of<T extends BindingSupport, B extends Binding>(
+      BuildContext context) {
     if (context is StatefulElement) {
       var state = context.state;
       if (state is T) {

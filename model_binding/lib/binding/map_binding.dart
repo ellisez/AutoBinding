@@ -7,6 +7,26 @@ class MapBinding<T> with MapMixin<String, T> {
 
   MapBinding([Map<String, dynamic>? data]) : _data = data ?? {};
 
+  void setData(Map<String, dynamic> data, {bool? isClear}) {
+    if (true == isClear) {
+      _notifiers.forEach((key, value) {
+        value.dispose();
+      });
+      _notifiers.clear();
+      _converts.clear();
+    }
+    _data = data;
+  }
+
+  setNotifier(String field, ValueNotifier notifier) =>
+    _notifiers[field] = notifier;
+
+  ValueNotifier? removeNotifier(String field) => _notifiers.remove(field);
+
+  setConvert(String field, Convert convert) => _converts[field] = convert;
+
+  Convert? removeConvert(String field) => _converts.remove(field);
+
   @override
   operator [](Object? key) {
     return _data[key];
