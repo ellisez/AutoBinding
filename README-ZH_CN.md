@@ -14,9 +14,9 @@ Map实例只需要确定获取字段的方法并控制其可见性，即可获�
 ## Setup
 
 ```shell
-flutter pub get add model_binding
-flutter pub get add build_runner --dev
-flutter pub get add model_binding_builder --dev
+flutter pub add model_binding
+flutter pub add build_runner --dev
+flutter pub add model_binding_builder --dev
 ```
 
 or

@@ -9,3 +9,6 @@
 
 ## 1.0.3
 - Add rebind(data).
+
+## 1.0.4
+- Update README.MD.

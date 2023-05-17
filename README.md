@@ -13,9 +13,9 @@ Map instances only need to determine the method of obtaining fields and control 
 ## Setup
 
 ```shell
-flutter pub get add model_binding
-flutter pub get add build_runner --dev
-flutter pub get add model_binding_builder --dev
+flutter pub add model_binding
+flutter pub add build_runner --dev
+flutter pub add model_binding_builder --dev
 ```
 
 or
