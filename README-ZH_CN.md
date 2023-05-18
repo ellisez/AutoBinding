@@ -32,6 +32,14 @@ dev_dependencies:
   ...
 ```
 
+## Lints
+
+### analysis_options.yaml
+```yaml
+include: package:model_binding/lints.yaml
+
+```
+
 ## Example
 
 ### model
@@ -66,7 +74,7 @@ class YourModel extends _YourModelImpl {
 convert(data) => data.toString();
 
 
-@ModelBinding([
+@Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
   Property('withValueConvert', value: '12', convert: 'convert'),
@@ -75,14 +83,24 @@ convert(data) => data.toString();
   Property<Map<String?, dynamic>?>('mapWithType'),
   Property<Map?>('mapNoType'),
 ])
-class YourBinding extends _YourBindingImpl {
+class SuperBinding extends _SuperBindingImpl {
+  SuperBinding([super.data]);
+}
 
-  YourBinding([super.data]);
+@Binding([
+  Property<String>('subProperty', value: '"default subProperty"'),
+])
+class SubBinding extends SuperBinding with _SubBindingMixin {
+  SubBinding([super.data]);
 }
 
 ```
 
-### use MapBinding & ListBinding
+- 使用类继承的方式: _${yourClassName}Impl, 因为单继承的要求，占用的话可以考虑用mixin。
+- 使用mixin混入方式: _${yourClassName}Mixin; 必须要继承ModelBinding和它的子类。
+
+
+### Model transformation
 
 ```dart
 var mapBinding = MapBinding();
@@ -103,21 +121,40 @@ var str = const JsonEncoder().convert(export);
 debugPrint(str);
 
 // model replace data
-var yourModel = YourBinding(mapBinding);// bring default value: "withValueConvert":12
-yourModel.nullableString = 'first value';
+var superModel = SuperBinding(mapBinding);// bring default value: "withValueConvert":12
+superModel.nullableString = 'first value';
 // optional - add notify or convert
-yourModel.textField("nullableString", convert: (string) => string + '1');
-debugPrint(const JsonEncoder().convert(yourModel.export()));
+superModel.textField("nullableString", convert: (string) => string + '1');
+debugPrint(const JsonEncoder().convert(superModel.export()));
 // console see {"a":12,"b":"34","c":[56,"78"],"d":[90,1],"e":{"f":"23","g":"45"},"nullableString":"first value","withValueConvert":12}
-yourModel.rebind({// new data maybe from http response or else
-"nullableString": "second value"
+superModel.dataRebind({// new data maybe from http response or else
+"nullableString": "second value is call by dataRebind()"
 }, isClear: true);// isClear=true all notifiers and converts
 
-yourModel.useDefault();// optional - bring default value: "withValueConvert":12
+superModel.useDefault();// optional - bring default value: "withValueConvert":12
 
-debugPrint(const JsonEncoder().convert(yourModel.export()));
-// console see {"nullableString":"second value","withValueConvert":12}
+debugPrint(const JsonEncoder().convert(superModel.export()));
+// console see {"nullableString":"second value is call by dataRebind()","withValueConvert":12}
+
+var otherModel = SubBinding();
+superModel.bindTo(otherModel); // Transform different types of models by binding common data MapModels.
+debugPrint(otherModel.nullableString);
+// console see the same as SuperModel.nullableString "second value"
+superModel.nullableString = 'third value is changed from superModel';// change one of bindings other also changed.
+debugPrint(otherModel.nullableString);
+// console see 'third value is changed from superModel'
+
 ```
+
+- `export()`: 只会输出被注解定义过的数据项。 并且输出结果脱离模型同步。
+- `dataRebind()`: 重新绑定数据便于整块替换. 如HTTP返回数据。
+- `bindTo()`: 用于绑定另一个Model使之数据得以同步. 通常用于类型完全不同的模型间转换，如ViewModel转Http Param.
+- 你有两种机会让与产生同步，第一种是构造实例时传入的数据项，第二种就是调用dataRebind()或BindTo()方法.
+
+框架会保证外部对共享数据可见性, 避免直接对物理数据进行操作. 但在子类中, 物理数据是可以被直接访问的.
+
+一般而言，我们允许整块数据替换，禁止非声明的数据项访问。整块替换可类比为传统的new一个模型类，禁止访问未被声明的字段类比为模型里没有定义字段。
+
 
 ### use ModelBinding
 
@@ -163,60 +200,60 @@ context in Binding class, can be partially refreshed.
 ```dart
 @override
 Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      automaticallyImplyLeading: true,
-      title: const Text('Widget binding'),
-    ),
-    body: Center(
-      child: Column(
-        children: [
-          RefreshableBuilder(
-            builder: (context) => Column(
-              children: [
-                RadioListTile<RefreshMode>(
-                    title: const Text('self: only control rebuild'),
-                    value: RefreshMode.self,
-                    groupValue: mode,
-                    onChanged: (value) {
-                      mode = value!;
-                      setState(() {});
-                    }),
-                RadioListTile<RefreshMode>(
-                    title: const Text('partially: find RefreshableBuilder to rebuild'),
-                    value: RefreshMode.partially,
-                    groupValue: mode,
-                    onChanged: (value) {
-                      mode = value!;
-                      setState(() {});
-                    }),
-                const Text(
-                  'Both self and partially based on context arguments',
-                  style: TextStyle(),
+  appBar: AppBar(
+    automaticallyImplyLeading: true,
+    title: const Text('Widget src.binding'),
+  ),
+  body: Center(
+    child: Column(
+      children: [
+        RefreshableBuilder(
+          builder: (context) => Column(
+            children: [
+              RadioListTile<RefreshMode>(
+                  title: const Text('self: only control rebuild'),
+                  value: RefreshMode.self,
+                  groupValue: mode,
+                  onChanged: (value) {
+                    mode = value!;
+                    setState(() {});
+                  }),
+              RadioListTile<RefreshMode>(
+                  title: const Text('partially: find RefreshableBuilder to rebuild'),
+                  value: RefreshMode.partially,
+                  groupValue: mode,
+                  onChanged: (value) {
+                    mode = value!;
+                    setState(() {});
+                  }),
+              const Text(
+                'Both self and partially based on context arguments',
+                style: TextStyle(),
+              ),
+              const Divider(),
+              Container(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 10),
+                child: TextFieldBinding(
+                  binding: binding,
+                  property: 'nullableString',
+                  mode: mode,
+                  //context: context, // base on from
                 ),
-                const Divider(),
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
-                  child: TextFieldBinding(
-                    binding: binding,
-                    property: 'nullableString',
-                    mode: mode,
-                    //context: context, // base on from
-                  ),
-                ),
-                Text('partially refresh point：${binding.nullableString ?? ''}'),
-              ],
-            ),
+              ),
+              Text('partially refresh point：${binding.nullableString ?? ''}'),
+            ],
           ),
-          ElevatedButton(
-              onPressed: () {
-                setState(() {});
-              },
-              child: const Text('refresh outside')),
-          Text('outside refresh point：${binding.nullableString ?? ''}'),
-        ],
-      ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              setState(() {});
+            },
+            child: const Text('refresh outside')),
+        Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
+      ],
     ),
+  ),
 );
 ```
 
@@ -228,13 +265,13 @@ Widget build(BuildContext context) => Scaffold(
 
 ### Advanced
 - `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
-- `RefreshableBuilder.of(context)` 可以获得RefreshableBuilder实例. `RefreshableBuilder.binding` 可以获得模型的实例.
+- `RefreshableBuilder.of(context)` 可以获得RefreshableBuilder实例. 
 - `RefreshableBuilder.rebuild(context)` 可以局部刷新ui.
 - `BindingSupport` 可以mixin快速建立绑定模型.
 - `BindingSupport.of(context)` 获得被混入BindingSupport的State实例.
-- `Binding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
+- `ModelBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
 
-Widget Tree跨层时使用Binding.of(context)能够快速的获取模型数据。
+Widget Tree跨层时使用ModelBinding.of(context)能够快速的获取模型数据。
 ## Generate
 
 ```shell

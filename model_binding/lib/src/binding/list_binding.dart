@@ -35,7 +35,7 @@ class ListBinding<T> with ListMixin<T> {
 
   @override
   operator [](int index) {
-    return _list[index].data;
+    return _list[index].$_data;
   }
 
   @override

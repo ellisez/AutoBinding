@@ -1,11 +1,11 @@
-import 'package:map_model_builder/generator/base.dart';
+import 'package:map_model_builder/src/base_generator.dart';
 import 'package:model_binding/annotation/annotation.dart';
 
-class ModelBindingGenerator extends BaseGenerator<ModelBinding> {
+class ModelBindingGenerator extends BaseGenerator<Binding> {
   @override
   String get mapClass => 'MapBinding';
 
   @override
-  String get superClass => 'extends Binding';
+  String get superClass => 'ModelBinding';
 
 }

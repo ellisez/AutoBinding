@@ -1,6 +1,6 @@
 import 'package:example/your_model.dart';
 import 'package:flutter/material.dart';
-import 'package:model_binding/binding/binding.dart';
+import 'package:model_binding/model_binding.dart';
 
 class WidgetBindingPage extends StatefulWidget {
   const WidgetBindingPage({super.key});
@@ -10,14 +10,14 @@ class WidgetBindingPage extends StatefulWidget {
 }
 
 class WidgetBindingState extends State<WidgetBindingPage>
-    with BindingSupport<WidgetBindingPage, YourBinding> {
+    with BindingSupport<WidgetBindingPage, SuperBinding> {
   @override
-  late YourBinding binding;
+  late SuperBinding binding;
   RefreshMode mode = RefreshMode.self;
 
   @override
   void initState() {
-    binding = YourBinding();
+    binding = SuperBinding();
     super.initState();
   }
 
@@ -25,7 +25,7 @@ class WidgetBindingState extends State<WidgetBindingPage>
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          title: const Text('Widget binding'),
+          title: const Text('Widget src.binding'),
         ),
         body: Center(
           child: Column(
@@ -73,7 +73,7 @@ class WidgetBindingState extends State<WidgetBindingPage>
                     setState(() {});
                   },
                   child: const Text('refresh outside')),
-              Text('outside refresh point：${Binding.of<WidgetBindingState, YourBinding>(context)?.nullableString ?? ''}'),
+              Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
             ],
           ),
         ),

@@ -3,7 +3,7 @@ part of binding;
 enum RefreshMode { self, partially }
 
 class TextFieldBinding extends StatefulWidget {
-  final Binding binding;
+  final ModelBinding binding;
   final String property;
   final TextFieldConvert? convert;
   final BuildContext? context;
@@ -143,9 +143,9 @@ class TextFieldBindingState extends State<TextFieldBinding> {
     if (value == null) return;
     var newValue = value;
     if (widget.convert != null) newValue = widget.convert!(value);
-    var oldValue = widget.binding._data[widget.property];
+    var oldValue = widget.binding.$_data[widget.property];
     if (newValue != oldValue) {
-      widget.binding._data[widget.property] = value;
+      widget.binding.$_data[widget.property] = value;
       if (widget.onChanged != null) widget.onChanged!(value);
 
       var widgetContext = widget.context;
@@ -230,7 +230,7 @@ class TextFieldBindingState extends State<TextFieldBinding> {
         spellCheckConfiguration: widget.spellCheckConfiguration,
         magnifierConfiguration: widget.magnifierConfiguration,
         controller: widget.binding.textField(widget.property,
-            value: widget.binding._data[widget.property],
+            value: widget.binding.$_data[widget.property],
             retainSelection: true,
             convert: widget.convert),
       );

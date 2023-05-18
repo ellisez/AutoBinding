@@ -31,6 +31,14 @@ dev_dependencies:
   ...
 ```
 
+## Lints
+
+### analysis_options.yaml
+```yaml
+include: package:model_binding/lints.yaml
+
+```
+
 ## Example
 
 ### model
@@ -39,7 +47,7 @@ provided `@Model` `@ModelBinding` annotation
 
 [@Model]() can use for Map as Model, like Entity, Vo, Dto. see [MapModel](https://pub.flutter-io.cn/packages/map_model)
 
-[@ModelBinding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
+[@Binding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
 
 That is to say, the interface for modifying values will be partially refreshed, the display of values at the reference point, and the control input will also change the new value and be notified.
 
@@ -65,7 +73,7 @@ class YourModel extends _YourModelImpl {
 convert(data) => data.toString();
 
 
-@ModelBinding([
+@Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
   Property('withValueConvert', value: '12', convert: 'convert'),
@@ -74,14 +82,23 @@ convert(data) => data.toString();
   Property<Map<String?, dynamic>?>('mapWithType'),
   Property<Map?>('mapNoType'),
 ])
-class YourBinding extends _YourBindingImpl {
+class SuperBinding extends _SuperBindingImpl {
+  SuperBinding([super.data]);
+}
 
-  YourBinding([super.data]);
+@Binding([
+  Property<String>('subProperty', value: '"default subProperty"'),
+])
+class SubBinding extends SuperBinding with _SubBindingMixin {
+  SubBinding([super.data]);
 }
 
 ```
 
-### use MapBinding & ListBinding
+- use extends class: _${yourClassName}Impl, Because of single inheritance, Mixin can be considered.
+- use mixin: _${yourClassName}Mixin; Must inherit ModelBinding and its subclasses.
+
+### Model transformation
 
 ```dart
 var mapBinding = MapBinding();
@@ -102,21 +119,39 @@ var str = const JsonEncoder().convert(export);
 debugPrint(str);
 
 // model replace data
-var yourModel = YourBinding(mapBinding);// bring default value: "withValueConvert":12
-yourModel.nullableString = 'first value';
+var superModel = SuperBinding(mapBinding);// bring default value: "withValueConvert":12
+superModel.nullableString = 'first value';
 // optional - add notify or convert
-yourModel.textField("nullableString", convert: (string) => string + '1');
-debugPrint(const JsonEncoder().convert(yourModel.export()));
+superModel.textField("nullableString", convert: (string) => string + '1');
+debugPrint(const JsonEncoder().convert(superModel.export()));
 // console see {"a":12,"b":"34","c":[56,"78"],"d":[90,1],"e":{"f":"23","g":"45"},"nullableString":"first value","withValueConvert":12}
-yourModel.rebind({// new data maybe from http response or else
-"nullableString": "second value"
+superModel.dataRebind({// new data maybe from http response or else
+"nullableString": "second value is call by dataRebind()"
 }, isClear: true);// isClear=true all notifiers and converts
 
-yourModel.useDefault();// optional - bring default value: "withValueConvert":12
+superModel.useDefault();// optional - bring default value: "withValueConvert":12
 
-debugPrint(const JsonEncoder().convert(yourModel.export()));
-// console see {"nullableString":"second value","withValueConvert":12}
+debugPrint(const JsonEncoder().convert(superModel.export()));
+// console see {"nullableString":"second value is call by dataRebind()","withValueConvert":12}
+
+var otherModel = SubBinding();
+superModel.bindTo(otherModel); // Transform different types of models by binding common data MapModels.
+debugPrint(otherModel.nullableString);
+// console see the same as SuperModel.nullableString "second value"
+superModel.nullableString = 'third value is changed from superModel';// change one of bindings other also changed.
+debugPrint(otherModel.nullableString);
+// console see 'third value is changed from superModel'
+
 ```
+
+- `export()`: Only export defined data items. And out of sync.
+- `dataRebind()`: Rebind data for easy block replacement of data items. like Data returned by HTTP.
+- `bindTo()`: Used to bind another model to synchronize its data. Commonly used for different types of model transformations.
+- You have two opportunities to bind data, one is the parameters passed in during instance construction, and the other is to call dataRebind() or BindTo().
+
+The framework ensures external visibility of various models that share data, avoiding direct manipulation of physical data. But in inheritance classes, physical data can be directly manipulated.
+
+Generally speaking, we allow whole block data substitution and prohibit access to non declared data items. The whole block replacement can be compared to the traditional new model class, which prohibits access to undeclared fields. The analogy is that there are no defined fields in the model.
 
 ### use ModelBinding
 
@@ -162,60 +197,60 @@ context in Binding class, can be partially refreshed.
 ```dart
 @override
 Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      automaticallyImplyLeading: true,
-      title: const Text('Widget binding'),
-    ),
-    body: Center(
-      child: Column(
-        children: [
-          RefreshableBuilder(
-            builder: (context) => Column(
-              children: [
-                RadioListTile<RefreshMode>(
-                    title: const Text('self: only control rebuild'),
-                    value: RefreshMode.self,
-                    groupValue: mode,
-                    onChanged: (value) {
-                      mode = value!;
-                      setState(() {});
-                    }),
-                RadioListTile<RefreshMode>(
-                    title: const Text('partially: find RefreshableBuilder to rebuild'),
-                    value: RefreshMode.partially,
-                    groupValue: mode,
-                    onChanged: (value) {
-                      mode = value!;
-                      setState(() {});
-                    }),
-                const Text(
-                  'Both self and partially based on context arguments',
-                  style: TextStyle(),
+  appBar: AppBar(
+    automaticallyImplyLeading: true,
+    title: const Text('Widget src.binding'),
+  ),
+  body: Center(
+    child: Column(
+      children: [
+        RefreshableBuilder(
+          builder: (context) => Column(
+            children: [
+              RadioListTile<RefreshMode>(
+                  title: const Text('self: only control rebuild'),
+                  value: RefreshMode.self,
+                  groupValue: mode,
+                  onChanged: (value) {
+                    mode = value!;
+                    setState(() {});
+                  }),
+              RadioListTile<RefreshMode>(
+                  title: const Text('partially: find RefreshableBuilder to rebuild'),
+                  value: RefreshMode.partially,
+                  groupValue: mode,
+                  onChanged: (value) {
+                    mode = value!;
+                    setState(() {});
+                  }),
+              const Text(
+                'Both self and partially based on context arguments',
+                style: TextStyle(),
+              ),
+              const Divider(),
+              Container(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 10),
+                child: TextFieldBinding(
+                  binding: binding,
+                  property: 'nullableString',
+                  mode: mode,
+                  //context: context, // base on from
                 ),
-                const Divider(),
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
-                  child: TextFieldBinding(
-                    binding: binding,
-                    property: 'nullableString',
-                    mode: mode,
-                    //context: context, // base on from
-                  ),
-                ),
-                Text('partially refresh point：${binding.nullableString ?? ''}'),
-              ],
-            ),
+              ),
+              Text('partially refresh point：${binding.nullableString ?? ''}'),
+            ],
           ),
-          ElevatedButton(
-              onPressed: () {
-                setState(() {});
-              },
-              child: const Text('refresh outside')),
-          Text('outside refresh point：${binding.nullableString ?? ''}'),
-        ],
-      ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              setState(() {});
+            },
+            child: const Text('refresh outside')),
+        Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
+      ],
     ),
+  ),
 );
 ```
 
@@ -231,9 +266,9 @@ Widget build(BuildContext context) => Scaffold(
 - `RefreshableBuilder.rebuild(context)` can local refresh ui.
 - `BindingSupport` use can mixin it to quick build binding.
 - `BindingSupport.of(context)` can get State with BindingSupport instance.
-- `Binding.of(context)` can get binding model instance. equivalent to `BindingSupport.of(context).bind`
+- `ModelBinding.of(context)` can get binding model instance. equivalent to `BindingSupport.of(context).bind`
 
-`Binding. of (context)` used for cross level calls to widget trees
+`ModelBinding.of(context)` used for cross level calls to widget trees
 
 ## Generate
 

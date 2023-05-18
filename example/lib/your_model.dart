@@ -19,7 +19,7 @@ class YourModel extends _YourModelImpl {
 convert(data) => data.toString();
 
 
-@ModelBinding([
+@Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
   Property('withValueConvert', value: '12', convert: 'convert'),
@@ -28,7 +28,13 @@ convert(data) => data.toString();
   Property<Map<String?, dynamic>?>('mapWithType'),
   Property<Map?>('mapNoType'),
 ])
-class YourBinding extends _YourBindingImpl {
+class SuperBinding extends _SuperBindingImpl {
+  SuperBinding([super.data]);
+}
 
-  YourBinding([super.data]);
+@Binding([
+  Property<String>('subProperty', value: '"default subProperty"'),
+])
+class SubBinding extends SuperBinding with _SubBindingMixin {
+  SubBinding([super.data]);
 }

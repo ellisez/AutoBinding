@@ -1,8 +1,8 @@
 part of annotation;
 
-class ModelBinding {
+class Binding {
   final List<Property> properties;
 
-  const ModelBinding([this.properties = const []]);
+  const Binding([this.properties = const []]);
 
 }

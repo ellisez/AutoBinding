@@ -12,3 +12,6 @@
 
 ## 1.0.4
 - Update README.MD.
+
+## 1.0.5
+- Use mixin binding.

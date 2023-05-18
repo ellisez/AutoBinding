@@ -3,12 +3,21 @@ part of binding;
 typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
-abstract class Binding {
-  final MapBinding _data;
+abstract class ModelBinding {
+  @protected
+  // ignore: non_constant_identifier_names
+  late MapBinding $_data;
 
-  Binding(this._data);
+  ModelBinding([MapBinding? data]) : $_data = data ?? MapBinding({}) {
+    useDefault();
+  }
 
-  void rebind(Map<String, dynamic> data, {bool? isClear}) => _data.setData(data, isClear: isClear);
+  void dataRebind(Map<String, dynamic> data, {bool? isClear}) =>
+      this.$_data.setData(data, isClear: isClear);
+
+  void bindTo(ModelBinding other) {
+    other.$_data = $_data;
+  }
 
   TextEditingController textField(
     String field, {
@@ -16,18 +25,20 @@ abstract class Binding {
     bool retainSelection = true,
     String Function(dynamic)? convert,
   }) =>
-      _data.textField(field,
+      $_data.textField(field,
           value: value, retainSelection: retainSelection, convert: convert);
 
   void addListener(String field, VoidCallback listener) {
-    _data.addListener(field, listener);
+    $_data.addListener(field, listener);
   }
 
-  Map<String, dynamic> export() => _data.export();
+  void useDefault() {}
 
-  void dispose() => _data.dispose();
+  Map<String, dynamic> export() => {};
 
-  static B? of<T extends BindingSupport, B extends Binding>(
+  void dispose() => $_data.dispose();
+
+  static B? of<T extends BindingSupport, B extends ModelBinding>(
       BuildContext context) {
     if (context is StatefulElement) {
       var state = context.state;

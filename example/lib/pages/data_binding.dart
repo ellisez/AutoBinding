@@ -1,6 +1,6 @@
 import 'package:example/your_model.dart';
 import 'package:flutter/material.dart';
-import 'package:model_binding/binding/binding.dart';
+import 'package:model_binding/model_binding.dart';
 
 class DataBindingPage extends StatefulWidget {
   const DataBindingPage({super.key});
@@ -10,11 +10,11 @@ class DataBindingPage extends StatefulWidget {
 }
 
 class DataBindingState extends State<DataBindingPage> {
-  late YourBinding dataBinding;
+  late SuperBinding dataBinding;
 
   @override
   void initState() {
-    dataBinding = YourBinding();
+    dataBinding = SuperBinding();
     super.initState();
   }
 
@@ -22,7 +22,7 @@ class DataBindingState extends State<DataBindingPage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          title: const Text('Data binding'),
+          title: const Text('Data src.binding'),
         ),
         body: Row(
           children: [
@@ -35,7 +35,7 @@ class DataBindingState extends State<DataBindingPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const Text(
-                      'use raw widget',
+                      'use raw src.widget',
                       style: TextStyle(),
                     ),
                     const Divider(),
