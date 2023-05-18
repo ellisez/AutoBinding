@@ -8,7 +8,12 @@ abstract class ModelBinding {
   // ignore: non_constant_identifier_names
   late MapBinding $_data;
 
-  ModelBinding([MapBinding? data]) : $_data = data ?? MapBinding({}) {
+  ModelBinding([Map<String, dynamic>? data]) {
+    if (data is MapBinding) {
+      $_data = data;
+    } else {
+      $_data = MapBinding(data ?? {});
+    }
     useDefault();
   }
 

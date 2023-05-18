@@ -15,3 +15,6 @@
 
 ## 1.0.5
 - Use mixin binding.
+
+## 1.0.6
+- fix bug constructor MapBinding.
