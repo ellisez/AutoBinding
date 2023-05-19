@@ -15,13 +15,17 @@ abstract class ModelBinding {
       $_data = MapBinding(data ?? {});
     }
     useDefault();
+    validate();
   }
 
-  void dataRebind(Map<String, dynamic> data, {bool? isClear}) =>
-      this.$_data.setData(data, isClear: isClear);
+  void dataRebind(Map<String, dynamic> data, {bool? isClear}) {
+    this.$_data.setData(data, isClear: isClear);
+    validate();
+  }
 
   void bindTo(ModelBinding other) {
     other.$_data = $_data;
+    other.validate();
   }
 
   TextEditingController textField(
@@ -38,6 +42,8 @@ abstract class ModelBinding {
   }
 
   void useDefault() {}
+
+  void validate() {}
 
   Map<String, dynamic> export() => {};
 

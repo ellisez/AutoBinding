@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:js_interop';
 
 import 'package:example/your_model.dart';
 import 'package:flutter/foundation.dart';

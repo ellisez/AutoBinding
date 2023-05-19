@@ -1,7 +1,7 @@
 
 # ModelBinding
 
-[`en`](README.md) [`cn`](README-ZH_CN.md)
+[`en`](https://github.com/ellisez/ModelBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
 
 ModelBinding是一个使用MapModel实现的Widget数据绑定框架，其最大的优点是修改数据可以自动刷新相应的Widget。
 
@@ -60,7 +60,7 @@ part 'your_model.g.dart';
 @Model([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
-  Property('withValueConvert', value: '12', convert: 'convert'),
+  Property('withValueConvert', value: '12'),
   Property<List<String?>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
@@ -71,13 +71,11 @@ class YourModel extends _YourModelImpl {
   YourModel([super.data]);
 }
 
-convert(data) => data.toString();
-
 
 @Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
-  Property('withValueConvert', value: '12', convert: 'convert'),
+  Property('withValueConvert', value: '12'),
   Property<List<String?>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
@@ -93,6 +91,7 @@ class SuperBinding extends _SuperBindingImpl {
 class SubBinding extends SuperBinding with _SubBindingMixin {
   SubBinding([super.data]);
 }
+
 
 ```
 
@@ -158,7 +157,7 @@ debugPrint(otherModel.nullableString);
 
 ### use ModelBinding
 
-<img src="images/data_binding.gif">
+<img src="https://github.com/ellisez/ModelBinding/blob/master/images/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -195,7 +194,7 @@ context in Binding class, can be partially refreshed.
 
 ### use WidgetBinding
 
-<img src="images/widget_binding.gif">
+<img src="https://github.com/ellisez/ModelBinding/blob/master/images/widget_binding.gif">
 
 ```dart
 @override

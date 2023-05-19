@@ -18,3 +18,6 @@
 
 ## 1.0.6
 - fix bug constructor MapBinding.
+
+## 1.0.7
+- No longer providing convert, but verifying the type.

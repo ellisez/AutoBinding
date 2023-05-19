@@ -1,6 +1,6 @@
 # ModelBinding
 
-[en](README.md) [cn](README-ZH_CN.md)
+[en](https://github.com/ellisez/ModelBinding/blob/master/README.md) [cn](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
 
 ModelBinding is a Widget data binding framework implemented using MapModel, and its biggest advantage is that modifying data can automatically refresh corresponding Widgets.
 
@@ -59,7 +59,7 @@ part 'your_model.g.dart';
 @Model([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
-  Property('withValueConvert', value: '12', convert: 'convert'),
+  Property('withValueConvert', value: '12'),
   Property<List<String?>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
@@ -70,13 +70,11 @@ class YourModel extends _YourModelImpl {
   YourModel([super.data]);
 }
 
-convert(data) => data.toString();
-
 
 @Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
-  Property('withValueConvert', value: '12', convert: 'convert'),
+  Property('withValueConvert', value: '12'),
   Property<List<String?>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
@@ -92,6 +90,7 @@ class SuperBinding extends _SuperBindingImpl {
 class SubBinding extends SuperBinding with _SubBindingMixin {
   SubBinding([super.data]);
 }
+
 
 ```
 
@@ -155,7 +154,7 @@ Generally speaking, we allow whole block data substitution and prohibit access t
 
 ### use ModelBinding
 
-<img src="../images/data_binding.gif">
+<img src="https://github.com/ellisez/ModelBinding/raw/master/images/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -192,7 +191,7 @@ context in Binding class, can be partially refreshed.
 
 ### use WidgetBinding
 
-<img src="../images/widget_binding.gif">
+<img src="https://github.com/ellisez/ModelBinding/raw/master/images/widget_binding.gif">
 
 ```dart
 @override
