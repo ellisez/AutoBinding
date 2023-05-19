@@ -27,14 +27,14 @@ class RefreshableBuilder extends StatefulWidget {
 }
 
 class RefreshableBuilderState extends State<RefreshableBuilder> {
-
   @override
   Widget build(BuildContext context) => widget.builder(context);
 
   _rebuild() => this.setState(() {});
 }
 
-mixin BindingSupport<W extends StatefulWidget, T extends ModelBinding> on State<W> {
+mixin BindingSupport<W extends StatefulWidget, T extends ModelBinding>
+    on State<W> {
   T get binding;
 
   static T? of<T extends BindingSupport>(BuildContext context) {

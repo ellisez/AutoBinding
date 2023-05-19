@@ -4,8 +4,10 @@ part of binding;
 class ListBinding<T> with ListMixin<T> {
   /// raw list
   late List<dynamic> _list;
+
   /// notifiers
   List<ValueNotifier?> _notifiers = [];
+
   /// convert of notifier
   List<Convert?> _converts = [];
 
