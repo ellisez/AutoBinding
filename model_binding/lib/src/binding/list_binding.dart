@@ -1,10 +1,15 @@
 part of binding;
 
+/// ListBinding
 class ListBinding<T> with ListMixin<T> {
+  /// raw list
   late List<dynamic> _list;
+  /// notifiers
   List<ValueNotifier?> _notifiers = [];
+  /// convert of notifier
   List<Convert?> _converts = [];
 
+  /// ListBinding
   ListBinding([List? list]) : _list = list ?? [];
 
   void setData(List<dynamic> list, {bool? isClear}) {
@@ -35,7 +40,7 @@ class ListBinding<T> with ListMixin<T> {
 
   @override
   operator [](int index) {
-    return _list[index].$_data;
+    return _list[index].$data;
   }
 
   @override
@@ -66,6 +71,7 @@ class ListBinding<T> with ListMixin<T> {
     }
   }
 
+  /// binding for TextField
   TextEditingController textField(
     int index, {
     dynamic value,
@@ -117,10 +123,12 @@ class ListBinding<T> with ListMixin<T> {
     return notifier as TextEditingController;
   }
 
+  /// add change listener
   void addListener(int index, VoidCallback listener) {
     _list[index].notifier?.addListener(listener);
   }
 
+  /// export data
   List<T> export({Set<int>? includes, Set<int>? excludes}) {
     var newList = <T>[];
     for (var i = 0; i < _list.length; i++) {
@@ -131,13 +139,14 @@ class ListBinding<T> with ListMixin<T> {
       if (excludes != null && excludes.contains(i)) {
         continue;
       }
-      if (data is ListBinding) data = data.export();
-      if (data is MapBinding) data = data.export();
+      if (data is ModelBinding) data = data.$export();
+      if (data is ListBinding || data is MapBinding) data = data.export();
       newList.add(data);
     }
     return newList;
   }
 
+  /// dispose binding
   void dispose() {
     clear();
     _notifiers.forEach((item) => item?.dispose());

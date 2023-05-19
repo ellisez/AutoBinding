@@ -1,8 +1,13 @@
 part of binding;
 
 class MapBinding<T> with MapMixin<String, T> {
+  /// raw map
   late Map<String, dynamic> _data;
+
+  /// notifiers
   Map<String, ValueNotifier> _notifiers = {};
+
+  /// convert of notifier
   Map<String, Convert> _converts = {};
 
   MapBinding([Map<String, dynamic>? data]) : _data = data ?? {};
@@ -19,7 +24,7 @@ class MapBinding<T> with MapMixin<String, T> {
   }
 
   setNotifier(String field, ValueNotifier notifier) =>
-    _notifiers[field] = notifier;
+      _notifiers[field] = notifier;
 
   ValueNotifier? removeNotifier(String field) => _notifiers.remove(field);
 
@@ -81,6 +86,7 @@ class MapBinding<T> with MapMixin<String, T> {
     return item;
   }
 
+  /// binding for TextField
   TextEditingController textField(
     String field, {
     dynamic value,
@@ -132,14 +138,17 @@ class MapBinding<T> with MapMixin<String, T> {
     return notifier as TextEditingController;
   }
 
+  /// add change listener
   void addListener(String field, VoidCallback listener) {
     _data[field]?.notifier?.addListener(listener);
   }
 
+  /// dispose binding
   void dispose() {
     clear();
   }
 
+  /// export data
   Map<String, T> export({Set<String>? includes, Set<String>? excludes}) {
     var newMap = <String, T>{};
     for (var entry in _data.entries) {
@@ -151,20 +160,30 @@ class MapBinding<T> with MapMixin<String, T> {
       if (excludes != null && excludes.contains(key)) {
         continue;
       }
-      if (data is ListBinding) data = data.export();
-      if (data is MapBinding) data = data.export();
+      if (data is ModelBinding) data = data.$export();
+      if (data is MapBinding || data is ListBinding) data = data.export();
       newMap[key] = data;
     }
     return newMap;
   }
 }
 
-String modelStringify(dynamic object) =>
+/// model to json string
+String modelStringify(dynamic object,
+        {Object? Function(Object?)? toEncodable}) =>
     jsonEncode(object, toEncodable: (dynamic item) {
-      if (item is MapBinding) return item.export();
+      var result;
+      if (toEncodable != null) {
+        result = toEncodable(item);
+      }
+      if (result != null) return result;
+      if (item is ModelBinding) return item.$export();
+      if (item is MapBinding || item is ListBinding) return item.export();
+      if (item is DateTime) return item.toIso8601String();
       return item;
     });
 
+/// export model
 dynamic modelExport(dynamic object) {
   if (object is List) {
     for (var i = 0; i < object.length; i++) {
@@ -175,7 +194,9 @@ dynamic modelExport(dynamic object) {
     for (var entity in object.entries) {
       object[entity.key] = modelExport(entity.value);
     }
-  } else if (object is MapBinding) {
+  } else if (object is ModelBinding) {
+    return object.$export();
+  } else if (object is MapBinding || object is ListBinding) {
     return object.export();
   }
   return object;

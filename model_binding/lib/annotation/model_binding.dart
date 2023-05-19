@@ -1,8 +1,13 @@
 part of annotation;
 
+/// binding annotation
 class Binding {
+  /// type converts
+  final Map<Type, String> converts;
+  /// field settings
   final List<Property> properties;
 
-  const Binding([this.properties = const []]);
+  /// binding annotation
+  const Binding(this.properties, {this.converts  = const {}});
 
 }

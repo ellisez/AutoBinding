@@ -3,52 +3,67 @@ part of binding;
 typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
+/// base ModelBinding class
 abstract class ModelBinding {
+  /// do not use it out of subclass.
   @protected
   // ignore: non_constant_identifier_names
-  late MapBinding $_data;
+  late MapBinding $data;
 
+  /// base ModelBinding class
   ModelBinding([Map<String, dynamic>? data]) {
     if (data is MapBinding) {
-      $_data = data;
+      $data = data;
     } else {
-      $_data = MapBinding(data ?? {});
+      $data = MapBinding(data ?? {});
     }
-    useDefault();
-    validate();
+    $default();
+    $validate();
   }
 
-  void dataRebind(Map<String, dynamic> data, {bool? isClear}) {
-    this.$_data.setData(data, isClear: isClear);
-    validate();
+  /// rebind data
+  void $rebind(Map<String, dynamic> data, {bool? isClear}) {
+    this.$data.setData(data, isClear: isClear);
+    $validate();
   }
 
-  void bindTo(ModelBinding other) {
-    other.$_data = $_data;
-    other.validate();
+  /// bind to another model
+  void $bindTo(ModelBinding other) {
+    other.$data = $data;
+    other.$validate();
   }
 
+  /// binding for TextField
   TextEditingController textField(
     String field, {
     dynamic value,
     bool retainSelection = true,
     String Function(dynamic)? convert,
   }) =>
-      $_data.textField(field,
+      $data.textField(field,
           value: value, retainSelection: retainSelection, convert: convert);
 
+  /// add change listener
   void addListener(String field, VoidCallback listener) {
-    $_data.addListener(field, listener);
+    $data.addListener(field, listener);
   }
 
-  void useDefault() {}
+  /// field types
+  Map<String, Type> $types() => {};
 
-  void validate() {}
+  /// field default value
+  void $default() {}
 
-  Map<String, dynamic> export() => {};
+  /// validate field value
+  void $validate() {}
 
-  void dispose() => $_data.dispose();
+  /// export data
+  Map<String, dynamic> $export() => {};
 
+  /// dispose binding
+  void dispose() => $data.dispose();
+
+  /// get BindingSupport
   static B? of<T extends BindingSupport, B extends ModelBinding>(
       BuildContext context) {
     if (context is StatefulElement) {
@@ -61,10 +76,12 @@ abstract class ModelBinding {
   }
 }
 
+/// int convert
 String Function(dynamic num) intConvert({String nullValue = ''}) {
   return (intValue) => intValue == null ? nullValue : intValue.toString();
 }
 
+/// stringList convert
 String Function(dynamic stringList) stringListConvert(
     {String nullValue = '', String sep = ' '}) {
   return (stringList) => stringList == null ? nullValue : stringList.join(sep);
