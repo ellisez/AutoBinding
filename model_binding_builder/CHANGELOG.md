@@ -28,3 +28,6 @@
 
 ## 1.0.9
 - update comments.
+
+## 1.0.10
+- optimized empty code.

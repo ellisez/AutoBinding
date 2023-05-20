@@ -19,7 +19,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^2.0.0
   build_runner: ^2.4.4
-  model_binding_builder: ^1.0.9
+  model_binding_builder: ^1.0.10
 
 flutter:
   uses-material-design: true
