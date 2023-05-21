@@ -1,13 +1,17 @@
 import 'package:map_model_builder/src/base_generator.dart';
 import 'package:model_binding/annotation/annotation.dart';
 
+/// ModelBindingGenerator
 class ModelBindingGenerator extends BaseGenerator<Binding> {
+  /// mapClass
   @override
   String get mapClass => 'MapBinding';
 
+  /// superClass
   @override
   String get superClass => 'ModelBinding';
 
+  /// genExport
   @override
   String genExport(String exportString) {
     String include = '';
