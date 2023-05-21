@@ -34,3 +34,6 @@
 
 ## 1.0.11
 - update resources.
+
+## 1.0.12
+- update example.

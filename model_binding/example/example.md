@@ -61,26 +61,28 @@ part 'your_model.g.dart';
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
   Property('withValueConvert', value: '12'),
-  Property<List<String?>?>('listWithType'),
+  Property<List<String>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
   Property<Map?>('mapNoType'),
+  Property<DateTime>('dateTime'),
 ])
 class YourModel extends _YourModelImpl {
-
   YourModel([super.data]);
 }
-
 
 @Binding([
   Property<String?>('nullableString', value: '"123"'),
   Property<int>('fixInt'),
   Property('withValueConvert', value: '12'),
-  Property<List<String?>?>('listWithType'),
+  Property<List<String>?>('listWithType'),
   Property<List?>('listNoType'),
   Property<Map<String?, dynamic>?>('mapWithType'),
   Property<Map?>('mapNoType'),
-])
+  Property<DateTime>('dateTime'),
+], converts: {
+  Map<String?, dynamic>: 'castMap',
+})
 class SuperBinding extends _SuperBindingImpl {
   SuperBinding([super.data]);
 }
@@ -92,9 +94,17 @@ class SubBinding extends SuperBinding with _SubBindingMixin {
   SubBinding([super.data]);
 }
 
+Map<String?, dynamic> castMap(String property, dynamic value) {
+  if (property == 'mapWithType') {
+    // hit Field
+  }
+  return value;
+}
+
 
 ```
 
+- `@Model.converts` 定义类型的转换器, 参见默认支持类型: List<String>, int, double, DateTime
 - 使用类继承的方式: _${yourClassName}Impl, 因为单继承的要求，占用的话可以考虑用mixin。
 - 使用mixin混入方式: _${yourClassName}Mixin; 必须要继承ModelBinding和它的子类。
 
@@ -107,44 +117,57 @@ mapBinding['a'] = 12;
 mapBinding['b'] = '34';
 mapBinding['c'] = [56, '78'];
 
-mapBinding['d'] = ListBinding<int>([90, 01]);// use generic
-mapBinding['e'] = MapBinding<String>({// use generic
-'f' : '23',
-'g' : '45',
+mapBinding['d'] = ListBinding<int>([90, 01]); // use generic
+mapBinding['e'] = MapBinding<String>({
+// use generic
+'f': '23',
+'g': '45',
 });
 
 // export offline data
-var export = mapBinding.export(includes: {'a','b', 'd', 'e'}, excludes: {'b'});
+var export =
+mapBinding.export(includes: {'a', 'b', 'd', 'e'}, excludes: {'b'});
 var str = const JsonEncoder().convert(export);
 // console see {"a":12,"d":[90,1],"e":{"f":"23","g":"45"}}
 debugPrint(str);
 
+// default convert type
+mapBinding['listWithType'] =
+'a b c'; // auto convert, List<String> default sep is ' '
+mapBinding['dateTime'] =
+'2023-05-19'; // auto convert, DateTime accept String & int
 // model replace data
-var superModel = SuperBinding(mapBinding);// bring default value: "withValueConvert":12
+var superModel =
+SuperBinding(mapBinding); // bring default value: "withValueConvert":12
 superModel.nullableString = 'first value';
 // optional - add notify or convert
 superModel.textField("nullableString", convert: (string) => string + '1');
-debugPrint(const JsonEncoder().convert(superModel.export()));
-// console see {"a":12,"b":"34","c":[56,"78"],"d":[90,1],"e":{"f":"23","g":"45"},"nullableString":"first value","withValueConvert":12}
-superModel.dataRebind({// new data maybe from http response or else
+debugPrint(modelStringify(superModel.$export()));
+// console see {"nullableString":"first value","fixInt":null,"withValueConvert":12,"listWithType":["a","b","c"],"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":"2023-05-19T00:00:00.000"}
+superModel.$rebind({
+// new data maybe from http response or else
 "nullableString": "second value is call by dataRebind()"
-}, isClear: true);// isClear=true all notifiers and converts
+}, isClear: true); // isClear=true all notifiers and converts
 
-superModel.useDefault();// optional - bring default value: "withValueConvert":12
+superModel
+    .$default(); // optional - bring default value: "withValueConvert":12
 
-debugPrint(const JsonEncoder().convert(superModel.export()));
-// console see {"nullableString":"second value is call by dataRebind()","withValueConvert":12}
+debugPrint(modelStringify(superModel));
+// console see {"nullableString":"second value is call by dataRebind()","fixInt":null,"withValueConvert":12,"listWithType":null,"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":null}
 
 var otherModel = SubBinding();
-superModel.bindTo(otherModel); // Transform different types of models by binding common data MapModels.
+superModel.$bindTo(
+otherModel); // Transform different types of models by binding common data MapModels.
 debugPrint(otherModel.nullableString);
 // console see the same as SuperModel.nullableString "second value"
-superModel.nullableString = 'third value is changed from superModel';// change one of bindings other also changed.
+superModel.nullableString =
+'third value is changed from superModel'; // change one of bindings other also changed.
 debugPrint(otherModel.nullableString);
 // console see 'third value is changed from superModel'
 
 ```
 
+- `$types` 显示所有字段类型.
 - `export()`: 只会输出被注解定义过的数据项。 并且输出结果脱离模型同步。
 - `dataRebind()`: 重新绑定数据便于整块替换. 如HTTP返回数据。
 - `bindTo()`: 用于绑定另一个Model使之数据得以同步. 通常用于类型完全不同的模型间转换，如ViewModel转Http Param.
@@ -157,7 +180,7 @@ debugPrint(otherModel.nullableString);
 
 ### use ModelBinding
 
-<img src="https://github.com/ellisez/ModelBinding/blob/master/images/data_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -194,7 +217,7 @@ context in Binding class, can be partially refreshed.
 
 ### use WidgetBinding
 
-<img src="https://github.com/ellisez/ModelBinding/blob/master/images/widget_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">
 
 ```dart
 @override
@@ -304,5 +327,4 @@ ModelBinding认为，将细节和工作负载交给开发人员并不是一个�
 
 
 [MapModel](https://pub.flutter-io.cn/packages/map_model)
-
 [ModelBinding](https://pub.flutter-io.cn/packages/model_binding)
