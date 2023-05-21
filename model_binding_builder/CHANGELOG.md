@@ -40,3 +40,6 @@
 
 ## 1.0.13
 - add example.
+
+## 1.0.14
+- fix bug genExport().

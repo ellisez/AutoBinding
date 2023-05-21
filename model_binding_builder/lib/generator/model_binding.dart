@@ -1,4 +1,5 @@
 import 'package:map_model_builder/src/base_generator.dart';
+import 'package:map_model_builder/src/resolve_info.dart';
 import 'package:model_binding/annotation/annotation.dart';
 
 /// ModelBindingGenerator
@@ -13,7 +14,8 @@ class ModelBindingGenerator extends BaseGenerator<Binding> {
 
   /// genExport
   @override
-  String genExport(String exportString) {
+  String genExport(String exportString, Set<PropertyInfo> propertySet,
+      Set<ConvertInfo> convertSet) {
     String include = '';
     for (var propertyInfo in propertySet) {
       if (include.isNotEmpty) {
