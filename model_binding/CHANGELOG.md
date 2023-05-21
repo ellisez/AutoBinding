@@ -31,3 +31,6 @@
 
 ## 1.0.10
 - fix bug export recur.
+
+## 1.0.11
+- update resources.
