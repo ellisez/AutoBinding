@@ -177,7 +177,7 @@ Generally speaking, we allow whole block data substitution and prohibit access t
 
 ### use ModelBinding
 
-<img src="resources/data_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -214,7 +214,7 @@ context in Binding class, can be partially refreshed.
 
 ### use WidgetBinding
 
-<img src="resources/widget_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">
 
 ```dart
 @override
