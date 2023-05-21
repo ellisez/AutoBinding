@@ -34,3 +34,6 @@
 
 ## 1.0.11
 - fix bug convert type *.
+
+## 1.0.12
+- fix bug export recur.

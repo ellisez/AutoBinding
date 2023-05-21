@@ -131,8 +131,9 @@ class ListBinding<T> with ListMixin<T> {
   }
 
   /// export data
-  List<T> export({Set<int>? includes, Set<int>? excludes}) {
-    var newList = <T>[];
+  List<T> export(
+      {Set<int>? includes, Set<int>? excludes, List<T>? target}) {
+    var newList = target ?? [];
     for (var i = 0; i < _list.length; i++) {
       var data = _list[i];
       if (includes != null && !includes.contains(i)) {

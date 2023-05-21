@@ -28,3 +28,6 @@
 
 ## 1.0.9
 - Update README.md.
+
+## 1.0.10
+- fix bug export recur.

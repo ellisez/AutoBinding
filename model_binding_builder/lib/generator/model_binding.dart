@@ -8,4 +8,29 @@ class ModelBindingGenerator extends BaseGenerator<Binding> {
   @override
   String get superClass => 'ModelBinding';
 
+  @override
+  String genExport(String exportString) {
+    String include = '';
+    for (var propertyInfo in propertySet) {
+      if (include.isNotEmpty) {
+        include += ',';
+      }
+      include += "'${propertyInfo.propertyName}'";
+    }
+
+    if (include.isNotEmpty) {
+      include = 'includes: {$include},';
+    }
+    if (exportString.isNotEmpty) {
+      return '''
+      @override
+      Map<String, dynamic> \$export() {
+        var map = super.\$export();
+        \$data.export($include target: map);
+        return map;
+      }
+      ''';
+    }
+    return '';
+  }
 }

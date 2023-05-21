@@ -149,8 +149,9 @@ class MapBinding<T> with MapMixin<String, T> {
   }
 
   /// export data
-  Map<String, T> export({Set<String>? includes, Set<String>? excludes}) {
-    var newMap = <String, T>{};
+  Map<String, T> export(
+      {Set<String>? includes, Set<String>? excludes, Map<String, T>? target}) {
+    var newMap = target ?? <String, T>{};
     for (var entry in _data.entries) {
       var key = entry.key;
       var data = entry.value;
@@ -184,20 +185,27 @@ String modelStringify(dynamic object,
     });
 
 /// export model
-dynamic modelExport(dynamic object) {
+dynamic modelExport(dynamic object, {dynamic target}) {
   if (object is List) {
+    var list = target ?? [];
     for (var i = 0; i < object.length; i++) {
       var item = object[i];
-      object[i] = modelExport(item);
+      list[i] = modelExport(item);
     }
+    object = list;
   } else if (object is Map) {
+    var map = target ?? {};
     for (var entity in object.entries) {
-      object[entity.key] = modelExport(entity.value);
+      map[entity.key] = modelExport(entity.value);
     }
+    object = map;
   } else if (object is ModelBinding) {
-    return object.$export();
+    object = object.$export();
+    if (target != null) {
+      object = target.addAll(object);
+    }
   } else if (object is MapBinding || object is ListBinding) {
-    return object.export();
+    object = object.export(target: target);
   }
   return object;
 }
