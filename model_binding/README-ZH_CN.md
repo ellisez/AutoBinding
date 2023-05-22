@@ -289,7 +289,8 @@ Widget build(BuildContext context) => Scaffold(
 - `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
 - `RefreshableBuilder.of(context)` 可以获得RefreshableBuilder实例. 
 - `RefreshableBuilder.rebuild(context)` 可以局部刷新ui.
-- `BindingSupport` 可以mixin快速建立绑定模型.
+- `BindingSupport` 可以mixin快速建立绑定模型. `mixin`
+- `BindingState` 可以刷新并且绑定数据 `class`
 - `BindingSupport.of(context)` 获得被混入BindingSupport的State实例.
 - `ModelBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
 

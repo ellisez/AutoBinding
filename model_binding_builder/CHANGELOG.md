@@ -43,3 +43,9 @@
 
 ## 1.0.14
 - fix bug genExport().
+
+## 1.0.15
+- ModelBinding can create.
+
+## 1.0.16
+- Add BindingState.

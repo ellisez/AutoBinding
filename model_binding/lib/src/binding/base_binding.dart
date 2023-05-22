@@ -4,7 +4,7 @@ typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
 /// base ModelBinding class
-abstract class ModelBinding {
+class ModelBinding {
   /// do not use it out of subclass.
   @protected
   // ignore: non_constant_identifier_names

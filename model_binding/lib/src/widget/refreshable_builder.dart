@@ -16,10 +16,21 @@ class RefreshableBuilder extends StatefulWidget {
   }
 
   static bool rebuild<T extends RefreshableBuilderState>(BuildContext context) {
-    var state = context.findAncestorStateOfType<T>();
-    if (state == null) return false;
-    state._rebuild();
-    return true;
+    State? state;
+    for (;;) {
+      state = context.findAncestorStateOfType();
+      if (state == null) {
+        return false;
+      }
+      if (state is RefreshableBuilderState) {
+        state._rebuild();
+        return true;
+      } else if (state is BindingState) {
+        state._rebuild();
+        return true;
+      }
+      context = state.context;
+    }
   }
 
   @override
@@ -52,4 +63,9 @@ mixin BindingSupport<W extends StatefulWidget, T extends ModelBinding>
     binding.dispose();
     super.dispose();
   }
+}
+
+abstract class BindingState<W extends StatefulWidget, T extends ModelBinding>
+    extends State<W> with BindingSupport<W, T> {
+  _rebuild() => this.setState(() {});
 }
