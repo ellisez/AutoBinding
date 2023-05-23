@@ -46,3 +46,6 @@
 
 ## 1.0.15
 - Update README.md.
+
+## 1.0.16
+- Support auto convert Model type.

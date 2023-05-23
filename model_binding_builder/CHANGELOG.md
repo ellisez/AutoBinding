@@ -49,3 +49,6 @@
 
 ## 1.0.16
 - Add BindingState.
+
+## 1.0.17
+- Support auto convert Model type.
