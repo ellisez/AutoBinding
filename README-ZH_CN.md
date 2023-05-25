@@ -215,6 +215,123 @@ TextFieldBinding(
 
 context in Binding class, can be partially refreshed.
 
+
+### Cross level call
+
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/sync_binding.gif">
+
+```dart
+
+class SyncWidgetBinding extends StatefulWidget {
+  const SyncWidgetBinding({super.key});
+
+  @override
+  State<StatefulWidget> createState() => SyncWidgetBindingState();
+}
+
+class SyncWidgetBindingState
+    extends BindingState<SyncWidgetBinding, SuperBinding> {
+  /// BindingState Can be found by subWidget
+  @override
+  SuperBinding binding = SuperBinding();
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// binding super widget
+    binding.$sync(
+      fields: ['nullableString'],
+      callback: () {
+        setState(() {});
+      },
+      notifierType: NotifierType.textField,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Cross level call',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            const Text('sync in SupperWidget:'),
+            SizedBox(
+              width: 150,
+              child: TextFieldBinding(
+                binding: binding,
+                property: 'nullableString',
+                //context: context, // base on from
+              ),
+            ),
+            const Divider(),
+            const SubWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SubWidget extends StatefulWidget {
+  const SubWidget({super.key});
+
+  @override
+  State<StatefulWidget> createState() => SubWidgetState();
+}
+
+class SubWidgetState extends State<SubWidget> {
+  SubBinding subBinding = SubBinding();
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// binding sub widget
+    ModelBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
+      subBinding,
+      context: context,
+      fields: ['nullableString'],
+      notifierType: NotifierType.textField,
+
+      /// support TextField
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text('sync in SubWidget:'),
+        SizedBox(
+          width: 100,
+          child: TextFieldBinding(
+            binding: subBinding,
+            property: 'nullableString',
+            //context: context, // base on from
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+- `$bindTo()` 仅同步数据.
+- `$sync()` 可以同步数据改变的事件.
+- `$sync(context)` 可以刷新context所在的Widget.
+- `$sync(callback)` 自定义数据改变事件, 需要自行调用setState().
+- `$sync(fields)` 罗列需同步的字段.
+- `$sync(notifierType)` `NotifierType.textField` 可以支持TextField控件.
+
 ### use WidgetBinding
 
 <img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">

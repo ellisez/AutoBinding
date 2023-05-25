@@ -1,4 +1,5 @@
 import 'package:example/pages/data_binding.dart';
+import 'package:example/pages/sync_binding.dart';
 import 'package:example/pages/widget_binding.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         '/': (_) => const MyHomePage(title: 'ModelBinding Demo Home Page'),
         '/dataBinding': (_) => const DataBindingPage(),
         '/widgetBinding': (_) => const WidgetBindingPage(),
+        '/syncBinding': (_) => const SyncWidgetBinding(),
       },
       initialRoute: '/',
     );
@@ -66,6 +68,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.of(context).pushNamed('/widgetBinding');
                 },
                 child: const Text('WidgetBinding Example')),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/syncBinding');
+                },
+                child: const Text('SyncBinding Example')),
           ),
         ],
       ),

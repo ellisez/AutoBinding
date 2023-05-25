@@ -3,8 +3,12 @@ part of binding;
 typedef Convert = dynamic Function(dynamic);
 typedef TextFieldConvert = String Function(dynamic);
 
+enum NotifierType { textField, valueNotifier }
+
 /// base ModelBinding class
 abstract class ModelBinding {
+  Map<String, Set<VoidCallback>> _syncCallback = {};
+
   /// do not use it out of subclass.
   @protected
   // ignore: non_constant_identifier_names
@@ -28,9 +32,74 @@ abstract class ModelBinding {
   }
 
   /// bind to another model
-  void $bindTo(ModelBinding other) {
+  ModelBinding $bindTo(ModelBinding other) {
     other.$data = $data;
     other.$validate();
+    return this;
+  }
+
+  /// sync to context
+  ModelBinding $sync({
+    BuildContext? context,
+    required List<String> fields,
+    VoidCallback? callback,
+    NotifierType notifierType = NotifierType.valueNotifier,
+  }) {
+    if (context == null && callback == null) {
+      throw AssertionError('context and callback have at least one value');
+    }
+    if (context != null && callback != null) {
+      throw AssertionError(
+          'context and callback cannot have values at the same time');
+    }
+
+    VoidCallback? listener = callback;
+    if (context != null) {
+      listener = () {
+        if (context is StatefulElement) {
+          // ignore: invalid_use_of_protected_member
+          context.state.setState(() {});
+        }
+      };
+    }
+
+    for (var field in fields) {
+      var callbacks = _syncCallback[field];
+      if (callbacks == null) {
+        callbacks = {};
+        _syncCallback[field] = callbacks;
+      }
+      callbacks.add(listener!);
+      var notifier = $data.getNotifier(field);
+      if (notifier == null) {
+        if (notifierType == NotifierType.textField) {
+          notifier = TextEditingController(text: $data[field]);
+        } else {
+          notifier = ValueNotifier($data[field]);
+        }
+        $data.setNotifier(field, notifier);
+      }
+      notifier.addListener(listener);
+    }
+    return this;
+  }
+
+  /// bind + sync
+  $bindSync(
+    ModelBinding other, {
+    BuildContext? context,
+    required List<String> fields,
+    VoidCallback? callback,
+        NotifierType notifierType = NotifierType.valueNotifier,
+  }) {
+    $bindTo(other);
+    $sync(
+        fields: fields,
+        context: context,
+        callback: callback,
+        notifierType: notifierType,
+    );
+    return this;
   }
 
   /// binding for TextField
@@ -61,7 +130,20 @@ abstract class ModelBinding {
   Map<String, dynamic> $export() => {};
 
   /// dispose binding
-  void dispose() => $data.dispose();
+  void dispose() {
+    for (var entry in _syncCallback.entries) {
+      var field = entry.key;
+      var callbacks = entry.value;
+
+      var notifier = $data.getNotifier(field);
+      if (notifier != null) {
+        for (var cb in callbacks) {
+          $data.removeListener(field, cb);
+        }
+      }
+    }
+    _syncCallback.clear();
+  }
 
   /// get BindingSupport
   static B? of<T extends BindingSupport, B extends ModelBinding>(

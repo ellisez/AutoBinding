@@ -49,3 +49,6 @@
 
 ## 1.0.16
 - Support auto convert Model type.
+
+## 1.0.17
+- Support cross level call.

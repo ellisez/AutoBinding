@@ -1,10 +1,7 @@
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:build/build.dart';
 import 'package:map_model_builder/src/base_generator.dart';
 import 'package:map_model_builder/src/resolve_info.dart';
 import 'package:model_binding/annotation/annotation.dart';
-import 'package:source_gen/source_gen.dart';
 
 /// ModelBindingGenerator
 class ModelBindingGenerator extends BaseGenerator<Binding> {
@@ -15,9 +12,6 @@ class ModelBindingGenerator extends BaseGenerator<Binding> {
   /// superClass
   @override
   String get superClass => 'ModelBinding';
-
-  /// allModels
-  static Set<String> allModels = {};
 
   /// genExport
   @override
@@ -45,13 +39,6 @@ class ModelBindingGenerator extends BaseGenerator<Binding> {
       ''';
     }
     return '';
-  }
-
-  @override
-  generateForAnnotatedElement(
-      Element element, ConstantReader annotation, BuildStep buildStep) {
-    if (element is ClassElement) allModels.add(element.displayName);
-    return super.generateForAnnotatedElement(element, annotation, buildStep);
   }
 
   @override
@@ -90,15 +77,11 @@ class ModelBindingGenerator extends BaseGenerator<Binding> {
   String? _convertType(String name, InterfaceType propertyType) {
     var propertyTypeName =
         propertyType.getDisplayString(withNullability: false);
-    if (allModels.contains(propertyTypeName)) {
+    if (!propertyType.isDartCoreString &&
+        !propertyType.isDartCoreDouble &&
+        !propertyType.isDartCoreInt &&
+        !propertyType.isDartCoreBool) {
       return '$propertyTypeName($name)';
-    }
-    var allSupertypes = propertyType.allSupertypes;
-    for (var superType in allSupertypes) {
-      var superTypeName = superType.getDisplayString(withNullability: false);
-      if (allModels.contains(superTypeName)) {
-        return '$propertyTypeName($name)';
-      }
     }
     return null;
   }

@@ -141,38 +141,34 @@ class TextFieldBinding extends StatefulWidget {
 class TextFieldBindingState extends State<TextFieldBinding> {
   onChanged(value) {
     if (value == null) return;
-    var newValue = value;
-    if (widget.convert != null) newValue = widget.convert!(value);
-    var oldValue = widget.binding.$data[widget.property];
-    if (newValue != oldValue) {
-      widget.binding.$data[widget.property] = value;
-      if (widget.onChanged != null) widget.onChanged!(value);
 
-      var widgetContext = widget.context;
-      if (widget.mode == RefreshMode.self) {
-        if (widgetContext != null) {
-          if (widgetContext is StatefulElement) {
-            widgetContext.state.setState(() {});
+    if (widget.onChanged != null) widget.onChanged!(value);
+    widget.binding.$data[widget.property] = value;
+
+    var widgetContext = widget.context;
+    if (widget.mode == RefreshMode.self) {
+      if (widgetContext != null) {
+        if (widgetContext is StatefulElement) {
+          widgetContext.state.setState(() {});
+          return;
+        } else {
+          var ancestorState = widgetContext.findAncestorStateOfType();
+          if (ancestorState != null) {
+            ancestorState.setState(() {});
             return;
-          } else {
-            var ancestorState = widgetContext.findAncestorStateOfType();
-            if (ancestorState != null) {
-              ancestorState.setState(() {});
-              return;
-            }
           }
         }
-      } else {
-        var useContext = context;
-        if (widgetContext != null) {
-          useContext = widgetContext;
-        }
-        if (RefreshableBuilder.rebuild(useContext)) {
-          return;
-        }
       }
-      setState(() {});
+    } else {
+      var useContext = context;
+      if (widgetContext != null) {
+        useContext = widgetContext;
+      }
+      if (RefreshableBuilder.rebuild(useContext)) {
+        return;
+      }
     }
+    setState(() {});
   }
 
   @override

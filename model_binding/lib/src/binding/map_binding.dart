@@ -23,6 +23,8 @@ class MapBinding<T> with MapMixin<String, T> {
     _data = data;
   }
 
+  ValueNotifier? getNotifier(String field) => _notifiers[field];
+
   setNotifier(String field, ValueNotifier notifier) =>
       _notifiers[field] = notifier;
 
@@ -122,8 +124,8 @@ class MapBinding<T> with MapMixin<String, T> {
         if (notifier is TextEditingController) {
           var notifierValue = getNotifierValue();
           if (notifierValue != notifier.text) {
-            var selection = notifier.selection;
             notifier.text = notifierValue;
+            var selection = notifier.selection;
             if (retainSelection) {
               if (selection.end >= notifierValue.length) {
                 selection =
@@ -140,7 +142,11 @@ class MapBinding<T> with MapMixin<String, T> {
 
   /// add change listener
   void addListener(String field, VoidCallback listener) {
-    _data[field]?.notifier?.addListener(listener);
+    _notifiers[field]?.addListener(listener);
+  }
+
+  void removeListener(String field, VoidCallback listener) {
+    _notifiers[field]?.removeListener(listener);
   }
 
   /// dispose binding
@@ -180,7 +186,13 @@ String modelStringify(dynamic object,
       if (result != null) return result;
       if (item is ModelBinding) return item.$export();
       if (item is MapBinding || item is ListBinding) return item.export();
-      if (item is DateTime) return item.toIso8601String();
+      if (item is DateTime) {
+        var dateString = item.toIso8601String();
+        if (!dateString.contains('Z')) {
+          dateString += 'Z';
+        }
+        return dateString;
+      }
       return item;
     });
 
