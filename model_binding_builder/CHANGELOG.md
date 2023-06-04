@@ -55,3 +55,6 @@
 
 ## 1.0.18
 - Support cross level call.
+
+## 1.0.19
+- Update example.

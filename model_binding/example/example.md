@@ -187,19 +187,19 @@ example provide 3 widget binding methods:
 ```dart
 /// controller and onChanged must be provided
 TextField(
-  controller: dataBinding.textField('nullableString'),// must be
-  onChanged: (value) {// must be
-      dataBinding.nullableString = value;
-      setState(() {});
-  },
+controller: dataBinding.textField('nullableString'),// must be
+onChanged: (value) {// must be
+dataBinding.nullableString = value;
+setState(() {});
+},
 );
 ```
 - `Minimum Binding`: use Binding class, only refresh controller
 ```dart
 /// use default context, that Binding class self context
 TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
+binding: dataBinding,
+property: 'nullableString',
 );
 ```
 - `Custom Binding`: use Binding class, specify context
@@ -207,13 +207,130 @@ TextFieldBinding(
 ```dart
 /// use special context control refresh range
 TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
-  context: context,
+binding: dataBinding,
+property: 'nullableString',
+context: context,
 );
 ```
 
 context in Binding class, can be partially refreshed.
+
+
+### Cross level call
+
+<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/sync_binding.gif">
+
+```dart
+
+class SyncWidgetBinding extends StatefulWidget {
+  const SyncWidgetBinding({super.key});
+
+  @override
+  State<StatefulWidget> createState() => SyncWidgetBindingState();
+}
+
+class SyncWidgetBindingState
+    extends BindingState<SyncWidgetBinding, SuperBinding> {
+  /// BindingState Can be found by subWidget
+  @override
+  SuperBinding binding = SuperBinding();
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// binding super widget
+    binding.$sync(
+      fields: ['nullableString'],
+      callback: () {
+        setState(() {});
+      },
+      notifierType: NotifierType.textField,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Cross level call',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            const Text('sync in SupperWidget:'),
+            SizedBox(
+              width: 150,
+              child: TextFieldBinding(
+                binding: binding,
+                property: 'nullableString',
+                //context: context, // base on from
+              ),
+            ),
+            const Divider(),
+            const SubWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SubWidget extends StatefulWidget {
+  const SubWidget({super.key});
+
+  @override
+  State<StatefulWidget> createState() => SubWidgetState();
+}
+
+class SubWidgetState extends State<SubWidget> {
+  SubBinding subBinding = SubBinding();
+
+  @override
+  void initState() {
+    super.initState();
+
+    /// binding sub widget
+    ModelBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
+      subBinding,
+      context: context,
+      fields: ['nullableString'],
+      notifierType: NotifierType.textField,
+
+      /// support TextField
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text('sync in SubWidget:'),
+        SizedBox(
+          width: 100,
+          child: TextFieldBinding(
+            binding: subBinding,
+            property: 'nullableString',
+            //context: context, // base on from
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+- `$bindTo()` 仅同步数据.
+- `$sync()` 可以同步数据改变的事件.
+- `$sync(context)` 可以刷新context所在的Widget.
+- `$sync(callback)` 自定义数据改变事件, 需要自行调用setState().
+- `$sync(fields)` 罗列需同步的字段.
+- `$sync(notifierType)` `NotifierType.textField` 可以支持TextField控件.
 
 ### use WidgetBinding
 
@@ -289,7 +406,8 @@ Widget build(BuildContext context) => Scaffold(
 - `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
 - `RefreshableBuilder.of(context)` 可以获得RefreshableBuilder实例.
 - `RefreshableBuilder.rebuild(context)` 可以局部刷新ui.
-- `BindingSupport` 可以mixin快速建立绑定模型.
+- `BindingSupport` 可以mixin快速建立绑定模型. `mixin`
+- `BindingState` 可以刷新并且绑定数据 `class`
 - `BindingSupport.of(context)` 获得被混入BindingSupport的State实例.
 - `ModelBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
 
