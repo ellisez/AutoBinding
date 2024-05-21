@@ -1,6 +1,4 @@
-import 'package:example/pages/data_binding.dart';
-import 'package:example/pages/sync_binding.dart';
-import 'package:example/pages/widget_binding.dart';
+import 'package:example/pages/login.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -21,9 +19,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (_) => const MyHomePage(title: 'ModelBinding Demo Home Page'),
-        '/dataBinding': (_) => const DataBindingPage(),
-        '/widgetBinding': (_) => const WidgetBindingPage(),
-        '/syncBinding': (_) => const SyncWidgetBinding(),
+        '/login': (_) => const LoginPage(),
       },
       initialRoute: '/',
     );
@@ -56,28 +52,11 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/dataBinding');
+                  Navigator.of(context).pushNamed('/login');
                 },
-                child: const Text('DataBinding Example')),
+                child: const Text('Example')),
           ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/widgetBinding');
-                },
-                child: const Text('WidgetBinding Example')),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/syncBinding');
-                },
-                child: const Text('SyncBinding Example')),
-          ),
         ],
       ),
     );

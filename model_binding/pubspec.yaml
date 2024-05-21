@@ -15,4 +15,3 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  map_model: ^1.0.11
