@@ -15,7 +15,7 @@ class LoginPage extends StatefulWidget {
 class _DefaultState extends BindingState<LoginFormViewModel, LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   @override
-  LoginFormViewModel data = LoginFormViewModel(LoginForm("", ""));
+  LoginFormViewModel data = LoginFormViewModel("", "");
 
   @override
   Widget build(BuildContext context) {

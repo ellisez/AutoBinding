@@ -1,6 +1,6 @@
 part of binding;
 
-abstract class ViewModel<T extends ViewBinder> {
+mixin ViewModel<T extends ViewBinder> {
   @protected
   final $widgetList = <Widget>[];
   @protected
