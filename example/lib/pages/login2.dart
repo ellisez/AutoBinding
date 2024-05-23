@@ -1,10 +1,9 @@
 import 'package:example/models/login_form.dart';
-import 'package:example/provider/model_sharing_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:model_binding/model_binding.dart';
 import '../models/login_form.g.dart';
-import 'login.g.dart';
 
+/*
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -14,42 +13,34 @@ class LoginPage extends StatefulWidget {
   }
 }
 
-@Inject(
-  name: 'LoginFormInject',
-  provider: 'ModelSharingProvider',
-  props: {
-    'username': 'loginForm.username',
-    'password': 'loginForm.password',
-  },
-  notifiers: {
-    'usernameController': ['loginForm.username', TextEditingController],
-    'passwordController': ['loginForm.password', TextEditingController],
-  },
-)
-@Inject(
-  name: 'SubLoginFormInject',
-  provider: 'ModelSharingProvider',
-  props: {
-    'username': 'loginForm.username',
-    'password': 'loginForm.password',
-  },
-)
 class _DefaultState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
 
+  // 步骤一: 创建可供绑定的模型
+  // Step 1: create model for binding
+  var binding = LoginFormBinding("", "");
+
+  // 步骤二: 注册切换widget事件
+  // Step 2: register didUpdateWidget() to update the new widget
+  @override
+  void didUpdateWidget(LoginPage oldWidget) {
+    binding.didUpdateWidget(oldWidget, widget);
+    super.didUpdateWidget(oldWidget);
+  }
+
+  // 步骤三: 注册销毁事件, 解绑widget
+  // Step 3: register dispose() to unbind widget
   @override
   void dispose() {
-    usernameController.dispose();
-    passwordController.dispose();
+    binding.unbind(this);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    var inject = LoginFormInject(context);
-
+    // 步骤四: 建立绑定widget, 必须在build()里有且只有一次调用
+    // Step 4: bind to widget, it must be called only once in the build()
+    var binder = binding.bind(this);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -72,7 +63,10 @@ class _DefaultState extends State<LoginPage> {
                         style: TextStyle(fontSize: 16, color: Colors.black38)),
                     const SizedBox(height: 30),
                     TextField(
-                      controller: inject.usernameController,
+                      controller:
+                          // 步骤五-1: 绑定到TextField
+                          // Step 5-1: bind to TextField
+                          binder.username.bindToTextEditingController(null),
                       decoration: const InputDecoration(
                         labelText: '用户名',
                         hintText: '请输入用户名',
@@ -82,7 +76,10 @@ class _DefaultState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
                     TextField(
-                      controller: inject.passwordController,
+                      controller:
+                          // 步骤五-1: 绑定到TextField
+                          // Step 5-1: bind to TextField
+                          binder.password.bindToTextEditingController(null),
                       decoration: const InputDecoration(
                         labelText: '密码',
                         hintText: '请输入密码',
@@ -97,7 +94,7 @@ class _DefaultState extends State<LoginPage> {
                         ElevatedButton(
                           onPressed: () async {
                             debugPrint(
-                                '${inject.username}, ${inject.password}');
+                                '${binding.username}, ${binding.password}');
                           },
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll<Color>(
@@ -111,8 +108,8 @@ class _DefaultState extends State<LoginPage> {
                         ElevatedButton(
                           onPressed: () async {
                             // 步骤六:
-                            inject.username = '来自指定值的修改';
-                            inject.password = '来自指定值的修改';
+                            binding.username = '来自指定值的修改';
+                            binding.password = '来自指定值的修改';
                           },
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll<Color>(
@@ -132,7 +129,7 @@ class _DefaultState extends State<LoginPage> {
                             backgroundColor: MaterialStatePropertyAll<Color>(
                                 Colors.lightBlue),
                             foregroundColor:
-                                MaterialStatePropertyAll<Color>(Colors.white),
+                            MaterialStatePropertyAll<Color>(Colors.white),
                           ),
                           child: const Text('强行刷新'),
                         ),
@@ -141,14 +138,13 @@ class _DefaultState extends State<LoginPage> {
                     const SizedBox(height: 30),
                     Builder(builder: (subContext) {
                       debugPrint('子视图发生刷新');
-                      var subInject = SubLoginFormInject(subContext);
                       return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                               vertical: 4, horizontal: 10),
                           color: Colors.blueGrey,
                           child: Text(
-                            'username = ${subInject.username}\npassword = ${subInject.password}',
+                            'username = ${binder.username.bindTo(subContext)}\npassword = ${binding.password}',
                             //style: const TextStyle(color: Colors.white),
                           ));
                     }),
@@ -158,3 +154,4 @@ class _DefaultState extends State<LoginPage> {
     );
   }
 }
+*/
