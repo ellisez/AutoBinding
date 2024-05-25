@@ -9,11 +9,32 @@ class Binding {
   const Binding(String? classname) : this.classname = classname;
 }
 
-class Inject {
-  const Inject({
+class Provider {
+  const Provider({
     required String name,
-    required String provider,
-    required Map<String, String> props,
-    Map<String, List>? notifiers,
+    required Map<String, List> props,
+  });
+}
+
+class DependOn {
+  const DependOn(
+    String name, {
+    required List<DependModel> models,
+  });
+}
+
+class DependModel {
+  const DependModel(
+    Type provider, {
+    required List<DependProperty> props,
+  });
+}
+
+class DependProperty {
+  const DependProperty(
+    String name, {
+    required Type type,
+    required String exp,
+    bool? supportInput,
   });
 }

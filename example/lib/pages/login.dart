@@ -1,9 +1,9 @@
+import 'package:example/main.dart';
 import 'package:example/models/login_form.dart';
-import 'package:example/provider/model_sharing_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:model_binding/model_binding.dart';
-import '../models/login_form.g.dart';
-import 'login.g.dart';
+
+part 'login.g.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -14,42 +14,34 @@ class LoginPage extends StatefulWidget {
   }
 }
 
-@Inject(
-  name: 'LoginFormInject',
-  provider: 'ModelSharingProvider',
-  props: {
-    'username': 'loginForm.username',
-    'password': 'loginForm.password',
-  },
-  notifiers: {
-    'usernameController': ['loginForm.username', TextEditingController],
-    'passwordController': ['loginForm.password', TextEditingController],
-  },
-)
-@Inject(
-  name: 'SubLoginFormInject',
-  provider: 'ModelSharingProvider',
-  props: {
-    'username': 'loginForm.username',
-    'password': 'loginForm.password',
-  },
-)
+@DependOn('LoginFormBinding', models: [
+  DependModel(
+    LoginForm,
+    props: [
+      DependProperty(
+        'username',
+        type: String,
+        exp: 'username',
+      ),
+      DependProperty(
+        'password',
+        type: String,
+        exp: 'password',
+      ),
+    ],
+  ),
+])
 class _DefaultState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
 
   @override
   void dispose() {
-    usernameController.dispose();
-    passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    var inject = LoginFormInject(context);
-
+    var binding = LoginFormBinding(context);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -72,17 +64,18 @@ class _DefaultState extends State<LoginPage> {
                         style: TextStyle(fontSize: 16, color: Colors.black38)),
                     const SizedBox(height: 30),
                     TextField(
-                      controller: inject.usernameController,
+                      controller: binding.usernameInput(),
                       decoration: const InputDecoration(
                         labelText: '用户名',
                         hintText: '请输入用户名',
                       ),
                       style: const TextStyle(
                           color: Colors.indigo, fontWeight: FontWeight.bold),
+                      onChanged: (value) => binding.username = value,
                     ),
                     const SizedBox(height: 20),
                     TextField(
-                      controller: inject.passwordController,
+                      controller: binding.passwordInput(),
                       decoration: const InputDecoration(
                         labelText: '密码',
                         hintText: '请输入密码',
@@ -90,6 +83,7 @@ class _DefaultState extends State<LoginPage> {
                       obscureText: true,
                       style: const TextStyle(
                           color: Colors.indigo, fontWeight: FontWeight.bold),
+                      onChanged: (value) => binding.password = value,
                     ),
                     const SizedBox(height: 30),
                     Row(
@@ -97,7 +91,7 @@ class _DefaultState extends State<LoginPage> {
                         ElevatedButton(
                           onPressed: () async {
                             debugPrint(
-                                '${inject.username}, ${inject.password}');
+                                '${binding.username}, ${binding.password}');
                           },
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll<Color>(
@@ -111,8 +105,8 @@ class _DefaultState extends State<LoginPage> {
                         ElevatedButton(
                           onPressed: () async {
                             // 步骤六:
-                            inject.username = '来自指定值的修改';
-                            inject.password = '来自指定值的修改';
+                            binding.username = '来自指定值的修改';
+                            binding.password = '来自指定值的修改';
                           },
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll<Color>(
@@ -141,14 +135,14 @@ class _DefaultState extends State<LoginPage> {
                     const SizedBox(height: 30),
                     Builder(builder: (subContext) {
                       debugPrint('子视图发生刷新');
-                      var subInject = SubLoginFormInject(subContext);
+                      var subBinding = LoginFormBinding(subContext);
                       return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                               vertical: 4, horizontal: 10),
                           color: Colors.blueGrey,
                           child: Text(
-                            'username = ${subInject.username}\npassword = ${subInject.password}',
+                            'username = ${subBinding.username}\npassword = ${subBinding.password}',
                             //style: const TextStyle(color: Colors.white),
                           ));
                     }),
