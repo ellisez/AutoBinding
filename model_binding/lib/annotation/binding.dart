@@ -1,14 +1,5 @@
 part of annotation;
 
-/// binding annotation
-class Binding {
-  /// classname
-  final String? classname;
-
-  /// binding annotation
-  const Binding(String? classname) : this.classname = classname;
-}
-
 class Provider {
   const Provider({
     required String name,

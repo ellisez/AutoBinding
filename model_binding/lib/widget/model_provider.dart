@@ -1,17 +1,15 @@
-import 'dart:collection';
-
 import 'model_inject.dart';
 import 'package:flutter/widgets.dart';
 
-class ModelInheritedWidget extends InheritedModel<DependRelationship> {
-  ModelInheritedWidget({super.key, required super.child});
+class ModelDependentManager extends InheritedModel<DependRelationship> {
+  ModelDependentManager({super.key, required super.child});
 
-  static W? of<W extends ModelInheritedWidget>(BuildContext context) {
+  static W? of<W extends ModelDependentManager>(BuildContext context) {
     return context.getInheritedWidgetOfExactType<W>();
   }
 
   @override
-  bool updateShouldNotify(covariant ModelInheritedWidget oldWidget) => true;
+  bool updateShouldNotify(covariant ModelDependentManager oldWidget) => true;
 
   @override
   bool updateShouldNotifyDependent(
@@ -26,42 +24,78 @@ class ModelInheritedWidget extends InheritedModel<DependRelationship> {
   }
 }
 
-class ModelProvider<T> extends StatefulWidget {
-  final Widget child;
+abstract class ShouldNotifyDependents {
+  void notifyDependents();
+}
+
+abstract class ModelProviderStatefulWidget extends StatefulWidget {
+  final WidgetBuilder builder;
+
+  ModelProviderStatefulWidget({required this.builder});
+}
+
+class ModelStatefulWidget<T> extends ModelProviderStatefulWidget {
   final T model;
 
-  ModelProvider({required this.child, required this.model});
-
-  static ModelState<T>? of<T>(BuildContext context) {
-    var state = context.findAncestorStateOfType<ModelState<T>>();
-    if (state == null) {
-      return null;
-    }
-    return state;
-  }
+  ModelStatefulWidget({required super.builder, required this.model});
 
   @override
   ModelState<T> createState() => ModelState<T>();
 }
 
-class ModelState<T> extends State<ModelProvider<T>> {
-  T get model => widget.model;
+abstract class ModelProviderState<T extends ModelProviderStatefulWidget>
+    extends State<T> implements ShouldNotifyDependents {
+  static T? of<T extends ModelProviderState>(BuildContext context) {
+    return context.findAncestorStateOfType<T>();
+  }
+
+  void notifyDependents() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ModelDependentManager(
+      child: widget.builder(context),
+    );
+  }
+}
+
+class ModelState<T> extends ModelProviderState<ModelStatefulWidget<T>> {
+  late T model;
 
   @override
   void initState() {
+    model = widget.model;
     super.initState();
   }
+}
 
-  void dependOnInheritedWidgetOfExactType(BuildContext context,
-      {required DependRelationship aspect}) {
-    context.dependOnInheritedWidgetOfExactType<ModelInheritedWidget>(aspect:  aspect);
+abstract class ModelProviderWidget extends StatelessWidget
+    implements ShouldNotifyDependents {
+  final WidgetBuilder builder;
+
+  ModelProviderWidget({required this.builder}) : super(key: GlobalKey());
+
+  static T? of<T extends ModelProviderWidget>(BuildContext context) {
+    return context.findAncestorWidgetOfExactType<T>();
   }
 
-  ////
+  void notifyDependents() {
+    var globalKey = this.key as GlobalKey;
+    (globalKey.currentContext as StatelessElement).markNeedsBuild();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ModelInheritedWidget(
-      child: this.widget.child,
+    return ModelDependentManager(
+      child: this.builder(context),
     );
   }
+}
+
+class ModelStatelessWidget<T> extends ModelProviderWidget {
+  final T model;
+
+  ModelStatelessWidget({required this.model, required super.builder});
 }

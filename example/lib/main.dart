@@ -16,9 +16,9 @@ class MyApp extends StatelessWidget {
   // This src.widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ModelProvider<LoginForm>(
+    return ModelStatefulWidget<LoginForm>(
       model: LoginForm("", ""),
-      child: MaterialApp(
+      builder: (context) => MaterialApp(
         title: 'ModelBinding Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
