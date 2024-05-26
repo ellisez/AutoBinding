@@ -23,7 +23,6 @@ class DependRelationship<T> {
 
   DependRelationship(this.getter, {this.handler}) : this.value = getter();
 
-  bool isValueChanged() => value != getter();
 }
 
 typedef OnChange<T> = void Function(T oldValue, T newValue);

@@ -15,12 +15,13 @@ class ModelDependentManager extends InheritedModel<DependRelationship> {
   bool updateShouldNotifyDependent(
       covariant InheritedModel<DependRelationship> oldWidget,
       Set<DependRelationship> dependencies) {
+    var isChange = false;
     for (var dependRelationship in dependencies) {
       if (dependRelationship.updateShouldNotifyDependent()) {
-        return true;
+        isChange = true;
       }
     }
-    return false;
+    return isChange;
   }
 }
 

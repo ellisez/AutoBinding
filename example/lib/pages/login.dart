@@ -14,23 +14,6 @@ class LoginPage extends StatefulWidget {
   }
 }
 
-@DependOn('LoginFormBinding', models: [
-  DependModel(
-    LoginForm,
-    props: [
-      DependProperty(
-        'username',
-        type: String,
-        exp: 'username',
-      ),
-      DependProperty(
-        'password',
-        type: String,
-        exp: 'password',
-      ),
-    ],
-  ),
-])
 class _DefaultState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -50,7 +33,7 @@ class _DefaultState extends State<LoginPage> {
   Widget build(BuildContext context) {
     var username = usernameBinder.connect(context);
 
-    //username.value;
+    username.value;
 
     var password = passwordBinder.connect(context);
     debugPrint('父视图发生刷新');
