@@ -41,6 +41,8 @@ class CallModelState extends StatelessWidget {
   Widget build(BuildContext context) {
     var username = usernameBinder.connect(context);
 
+    // username.bindTo();
+
     var password = passwordBinder.connect(context);
     debugPrint('父视图发生刷新');
     return Scaffold(

@@ -81,7 +81,6 @@ class WidgetBinder<P extends ModelProviderWidget, T> extends Binder<P, T> {
 
   @override
   P findProvider(BuildContext context) {
-    assert(context.debugDoingBuild, 'binding only run in build() method.');
     var provider = ModelProviderWidget.of<P>(context);
     assert(provider != null, 'can not found $P dependOn.');
     return provider!;

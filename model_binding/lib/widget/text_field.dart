@@ -539,6 +539,7 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
       }
     };
     _controller = TextEditingController(text: valueToString(widget.binding.value));
+    widget.binding.addListener(_handleUpdate);
     super.initState();
   }
 
