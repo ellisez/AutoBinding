@@ -511,6 +511,23 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
   late Function(String) stringToValue;
   late ValueSetter<String> onChanged;
 
+  void _handleUpdate() {
+    if (ChangeNotifier.debugAssertNotDisposed(_controller)) {
+      if (_controller.text != widget.binding.value) {
+        _controller.text = widget.binding.value;
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(BindingTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.binding != widget.binding) {
+      oldWidget.binding.removeListener(_handleUpdate);
+    }
+    widget.binding.addListener(_handleUpdate);
+  }
+
   @override
   void initState() {
     valueToString = widget.valueToString ?? (T t) => t as String;
@@ -527,11 +544,6 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
 
   @override
   Widget build(BuildContext context) {
-    widget.binding.addListener((oldValue, newValue) {
-      if (_controller.text != newValue) {
-        _controller.text = newValue;
-      }
-    });
     return TextField(
       controller: _controller,
       focusNode: widget.focusNode,

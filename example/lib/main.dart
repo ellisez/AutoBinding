@@ -1,10 +1,10 @@
-import 'package:example/pages/login.dart';
+import 'package:example/pages/example_for_model_provider_state.dart';
+import 'package:example/pages/example_for_model_provider_widget.dart';
+import 'package:example/pages/example_for_model_stateful_widget.dart';
+import 'package:example/pages/example_for_model_stateless_widget.dart';
 
 import 'package:flutter/material.dart';
-import 'package:model_binding/annotation/library.dart';
-import 'package:model_binding/widget/model_provider.dart';
 
-import 'models/login_form.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,9 +16,7 @@ class MyApp extends StatelessWidget {
   // This src.widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ModelStatefulWidget<LoginForm>(
-      model: LoginForm("", ""),
-      builder: (context) => MaterialApp(
+    return MaterialApp(
         title: 'ModelBinding Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -26,10 +24,12 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (_) => const MyHomePage(title: 'ModelBinding Demo Home Page'),
-          '/login': (_) => const LoginPage(),
+          '/exampleForModelStatefulWidget': (_) => const ExampleForModelStatefulWidget(),
+          '/exampleForModelStatelessWidget': (_) => ExampleForModelStatelessWidget(),
+          '/exampleForModelProviderState': (_) => const ExampleForModelProviderStatefulWidget(),
+          '/exampleForModelProviderWidget': (_) => ExampleForModelProviderWidget(),
         },
         initialRoute: '/',
-      ),
     );
   }
 }
@@ -43,10 +43,6 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-@Provider(
-  name: 'ModelSharingProvider',
-  props: {},
-)
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
@@ -64,11 +60,37 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/login');
+                  Navigator.of(context).pushNamed('/exampleForModelStatefulWidget');
                 },
-                child: const Text('Example')),
+                child: const Text('Example for ModelStatefulWidget')),
           ),
           const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/exampleForModelStatelessWidget');
+                },
+                child: const Text('Example for ModelStatelessWidget')),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/exampleForModelProviderState');
+                },
+                child: const Text('Example for subclass of ModelProviderState')),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/exampleForModelProviderWidget');
+                },
+                child: const Text('Example for subclass of ModelProviderWidget')),
+          ),
         ],
       ),
     );

@@ -2,54 +2,21 @@ import 'package:flutter/cupertino.dart';
 
 import 'model_provider.dart';
 
-class DependRelationship<T> {
+class DependRelationship<P extends ShouldNotifyDependents,T> {
+  Binder<P, T> binder;
   T value;
-  ValueGetter<T> getter;
 
-  bool updateShouldNotifyDependent() {
-    var oldValue = this.value;
-    var newValue = getter();
-    this.value = newValue;
-    if (newValue != oldValue) {
-      if (handler != null) {
-        return handler!(oldValue, newValue);
-      }
-      return true;
-    }
-    return false;
+  bool isChange(Element element) {
+    var provider = binder.findProvider(element);
+    var oldValue = value;
+    value = binder.getter(provider);
+    return value != oldValue;
   }
 
-  bool Function(T oldValue, T newValue)? handler;
-
-  DependRelationship(this.getter, {this.handler}) : this.value = getter();
-
+  DependRelationship({required this.binder, required this.value});
 }
 
-typedef OnChange<T> = void Function(T oldValue, T newValue);
-
-class StrongDependRelationship<T> extends DependRelationship<T> {
-  StrongDependRelationship(ValueGetter<T> getter, {OnChange<T>? onChange})
-      : super(
-          getter,
-          handler: (oldValue, newValue) {
-            if (onChange != null) onChange(oldValue, newValue);
-            return true;
-          },
-        );
-}
-
-class WeakDependRelationship<T> extends DependRelationship<T> {
-  WeakDependRelationship(ValueGetter<T> getter, {OnChange<T>? onChange})
-      : super(
-          getter,
-          handler: (oldValue, newValue) {
-            if (onChange != null) onChange(oldValue, newValue);
-            return false;
-          },
-        );
-}
-
-class Binding<P extends ShouldNotifyDependents, T> {
+class Binding<P extends ShouldNotifyDependents, T> extends ChangeNotifier {
   final BuildContext _context;
   final Binder<P, T> _binder;
 
@@ -61,28 +28,25 @@ class Binding<P extends ShouldNotifyDependents, T> {
     _provider = _binder.findProvider(_context);
   }
 
-  T get value {
+  T bindTo() {
+    var newValue = value;
     if (_context.debugDoingBuild) {
       _context.dependOnInheritedWidgetOfExactType<ModelDependentManager>(
-        aspect: StrongDependRelationship<T>(() => _binder.getter(_provider)),
+        aspect: DependRelationship<P, T>(binder: _binder, value: newValue),
       );
     }
-    return _binder.getter(_provider);
+    return newValue;
   }
+
+  T get value => _binder.getter(_provider);
 
   set value(T value) {
     var old = _binder.getter(_provider);
     if (old != value) {
       _binder.setter(_provider, value);
+      notifyListeners();
       _provider.notifyDependents();
     }
-  }
-
-  addListener(OnChange<T> onChange) {
-    _context.dependOnInheritedWidgetOfExactType<ModelDependentManager>(
-      aspect: WeakDependRelationship<T>(() => _binder.getter(_provider),
-          onChange: onChange),
-    );
   }
 }
 
