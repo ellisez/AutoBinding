@@ -1,7 +1,8 @@
 import 'dart:collection';
 
-import 'model_inject.dart';
 import 'package:flutter/widgets.dart';
+
+import 'model_change_notifier.dart';
 
 class ModelDependentManager extends InheritedWidget {
   final VoidCallback notifyDependents;
@@ -25,20 +26,20 @@ class ModelDependentManagerElement extends InheritedElement {
 
   @override
   void updateDependencies(Element dependent, Object? aspect) {
-    final Set<DependRelationship>? dependencies = getDependencies(dependent) as Set<DependRelationship>?;
+    final Set<DependentIsChange>? dependencies = getDependencies(dependent) as Set<DependentIsChange>?;
 
     if (aspect == null) {
-      setDependencies(dependent, HashSet<DependRelationship>());
+      setDependencies(dependent, HashSet<DependentIsChange>());
     } else {
-      assert(aspect is DependRelationship);
-      setDependencies(dependent, (dependencies ?? HashSet<DependRelationship>())..add(aspect as DependRelationship));
+      assert(aspect is DependentIsChange);
+      setDependencies(dependent, (dependencies ?? HashSet<DependentIsChange>())..add(aspect as DependentIsChange));
     }
   }
 
   @protected
   void notifyDependent(covariant InheritedWidget oldWidget, Element dependent) {
-    final Set<DependRelationship>? dependencies =
-        getDependencies(dependent) as Set<DependRelationship>?;
+    final Set<DependentIsChange>? dependencies =
+        getDependencies(dependent) as Set<DependentIsChange>?;
     if (dependencies == null || dependencies.isEmpty) {
       return;
     }
@@ -49,10 +50,6 @@ class ModelDependentManagerElement extends InheritedElement {
       }
     }
   }
-}
-
-abstract class ShouldNotifyDependents {
-  void notifyDependents();
 }
 
 abstract class ModelProviderStatefulWidget extends StatefulWidget {

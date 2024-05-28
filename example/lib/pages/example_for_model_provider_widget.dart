@@ -15,13 +15,13 @@ class CallModelProviderWidget extends StatelessWidget {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final usernameBinder = WidgetBinder<ExampleForModelProviderWidget, String>(
+  final usernameBinder = WidgetRef<ExampleForModelProviderWidget, String>(
     getter: (ExampleForModelProviderWidget widget) => widget.loginForm.username,
     setter: (ExampleForModelProviderWidget widget, String username) =>
         widget.loginForm.username = username,
   );
 
-  final passwordBinder = WidgetBinder<ExampleForModelProviderWidget, String>(
+  final passwordBinder = WidgetRef<ExampleForModelProviderWidget, String>(
     getter: (ExampleForModelProviderWidget widget) => widget.loginForm.password,
     setter: (ExampleForModelProviderWidget widget, String password) =>
         widget.loginForm.password = password,

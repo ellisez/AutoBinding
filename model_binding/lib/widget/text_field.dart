@@ -3,8 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'model_change_notifier.dart';
 import 'model_inject.dart';
-import 'model_provider.dart';
 
 class BindingTextField<P extends ShouldNotifyDependents, T> extends StatefulWidget {
   final Binding<P, T> binding;

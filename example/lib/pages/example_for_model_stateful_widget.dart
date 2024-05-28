@@ -25,13 +25,13 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
 class CallModelState extends StatelessWidget {
   CallModelState({super.key});
 
-  final usernameBinder = StateBinder<ModelState<LoginForm>, String>(
+  final usernameBinder = StateRef<ModelState<LoginForm>, String>(
     getter: (ModelState<LoginForm> state) => state.model.username,
     setter: (ModelState<LoginForm> state, String username) =>
         state.model.username = username,
   );
 
-  final passwordBinder = StateBinder<ModelState<LoginForm>, String>(
+  final passwordBinder = StateRef<ModelState<LoginForm>, String>(
     getter: (ModelState<LoginForm> state) => state.model.password,
     setter: (ModelState<LoginForm> state, String password) =>
         state.model.password = password,

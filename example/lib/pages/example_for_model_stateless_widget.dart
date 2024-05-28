@@ -18,13 +18,13 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 class CallModelStatelessWidget extends StatelessWidget {
   CallModelStatelessWidget({super.key});
 
-  final usernameBinder = WidgetBinder<ModelStatelessWidget<LoginForm>, String>(
+  final usernameBinder = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
         widget.model.username = username,
   );
 
-  final passwordBinder = WidgetBinder<ModelStatelessWidget<LoginForm>, String>(
+  final passwordBinder = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
     setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
         widget.model.password = password,

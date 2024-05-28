@@ -30,13 +30,13 @@ class CallModelProvider extends StatefulWidget {
 class CallModelProviderState extends State<CallModelProvider> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  var usernameBinder = StateBinder<ExampleForModelProviderState, String>(
+  var usernameBinder = StateRef<ExampleForModelProviderState, String>(
     getter: (ExampleForModelProviderState state) => state.username,
     setter: (ExampleForModelProviderState state, String username) =>
         state.username = username,
   );
 
-  var passwordBinder = StateBinder<ExampleForModelProviderState, String>(
+  var passwordBinder = StateRef<ExampleForModelProviderState, String>(
     getter: (ExampleForModelProviderState state) => state.password,
     setter: (ExampleForModelProviderState state, String password) =>
         state.password = password,
