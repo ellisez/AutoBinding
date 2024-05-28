@@ -58,3 +58,6 @@
 
 ## 1.0.19
 - Update example.
+
+## 2.0.0
+- Deprecated. see https://github.com/ellisez/ModelBinding
