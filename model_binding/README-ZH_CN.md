@@ -1,22 +1,20 @@
 
-# ModelBinding
+# ModelBinding v2
 
 [`en`](https://github.com/ellisez/ModelBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
 
-ModelBinding是一个使用MapModel实现的Widget数据绑定框架，其最大的优点是修改数据可以自动刷新相应的Widget。
+ModelBinding是一个轻便的MVVM双向绑定的状态管理框架, 以达到数据共享与同步。
 
-与传统的mvvm框架不同，它不需要建立和维护额外的绑定关系。它的核心思想是“获取即捆绑”，这更符合数据使用习惯。
+ModelBinding v2采用了全新的响应式编程方式，受到vue与react的启发，v2新版本允许利用原本已有的widget和build()扩展即可，也就是一个原本非双向绑定的普通Widget和build(), 无需重构大量WidgetTree层级关系，很丝滑的建立绑定关系。
 
-[MapModel](https://pub.flutter-io.cn/packages/map_model) 是目前最高效的模型实现框架，它使用Map来实现模型。
+与v1旧版本相比，数据提供方不再需要强制建立模型类用于绑定，数据调用方也无需强制继承特定的State和StatelessWidget，动态绑定也无手动进行释放；
 
-Map实例只需要确定获取字段的方法并控制其可见性，即可获得不同的模型，如Entity、VO、DTO等，而无需不断打开新的内存空间来移动数据，减少不必要的损失。
+v2版本总体设计原则是将数据提供方的数据结构最大程度的留给开发者，将数据调用方捆绑方式自由度最大程度的留给开发者。
 
 ## Setup
 
 ```shell
 flutter pub add model_binding
-flutter pub add build_runner --dev
-flutter pub add model_binding_builder --dev
 ```
 
 or
@@ -25,424 +23,268 @@ or
 dependencies:
   model_binding: any
   ...
-
-dev_dependencies:
-  build_runner: any
-  model_binding_builder: any
-  ...
 ```
 
-## Lints
+## 数据提供
 
-### analysis_options.yaml
-```yaml
-include: package:model_binding/lints.yaml
+系统提供了常见的四种数据提供方式:  `ModelStatefulWidget`, `ModelStatelessWidget`, `ModelProviderState`, `ModelProviderWidget`
 
-```
-
-## Example
-
-### model
-
-provided `@Model` `@ModelBinding` annotation
-
-[@Model]() can use for Map as Model, like Entity, Vo, Dto. see [MapModel](https://pub.flutter-io.cn/packages/map_model)
-
-[@ModelBinding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
-
-也就是说，修改值的界面将被部分刷新，在参考点显示值，控制输入也将更改新值并被通知。
+### ModelStatefulWidget 
+`ModelStatefulWidget` 提供一个`model`参数并给与泛型, 可直接在build()作为WidgetTree使用, 便于使用已有的数据类型;
 
 ```dart
-import 'package:model_binding/model_binding.dart';
-
-part 'your_model.g.dart';
-
-@Model([
-  Property<String?>('nullableString', value: '"123"'),
-  Property<int>('fixInt'),
-  Property('withValueConvert', value: '12'),
-  Property<List<String>?>('listWithType'),
-  Property<List?>('listNoType'),
-  Property<Map<String?, dynamic>?>('mapWithType'),
-  Property<Map?>('mapNoType'),
-  Property<DateTime>('dateTime'),
-])
-class YourModel extends _YourModelImpl {
-  YourModel([super.data]);
-}
-
-@Binding([
-  Property<String?>('nullableString', value: '"123"'),
-  Property<int>('fixInt'),
-  Property('withValueConvert', value: '12'),
-  Property<List<String>?>('listWithType'),
-  Property<List?>('listNoType'),
-  Property<Map<String?, dynamic>?>('mapWithType'),
-  Property<Map?>('mapNoType'),
-  Property<DateTime>('dateTime'),
-], converts: {
-  Map<String?, dynamic>: 'castMap',
-})
-class SuperBinding extends _SuperBindingImpl {
-  SuperBinding([super.data]);
-}
-
-@Binding([
-  Property<String>('subProperty', value: '"default subProperty"'),
-])
-class SubBinding extends SuperBinding with _SubBindingMixin {
-  SubBinding([super.data]);
-}
-
-Map<String?, dynamic> castMap(String property, dynamic value) {
-  if (property == 'mapWithType') {
-    // hit Field
-  }
-  return value;
-}
-
-
-```
-
-- `@Model.converts` 定义类型的转换器, 参见默认支持类型: List<String>, int, double, DateTime
-- 使用类继承的方式: _${yourClassName}Impl, 因为单继承的要求，占用的话可以考虑用mixin。
-- 使用mixin混入方式: _${yourClassName}Mixin; 必须要继承ModelBinding和它的子类。
-
-
-### Model transformation
-
-```dart
-var mapBinding = MapBinding();
-mapBinding['a'] = 12;
-mapBinding['b'] = '34';
-mapBinding['c'] = [56, '78'];
-
-mapBinding['d'] = ListBinding<int>([90, 01]); // use generic
-mapBinding['e'] = MapBinding<String>({
-// use generic
-'f': '23',
-'g': '45',
-});
-
-// export offline data
-var export =
-mapBinding.export(includes: {'a', 'b', 'd', 'e'}, excludes: {'b'});
-var str = const JsonEncoder().convert(export);
-// console see {"a":12,"d":[90,1],"e":{"f":"23","g":"45"}}
-debugPrint(str);
-
-// default convert type
-mapBinding['listWithType'] =
-'a b c'; // auto convert, List<String> default sep is ' '
-mapBinding['dateTime'] =
-'2023-05-19'; // auto convert, DateTime accept String & int
-// model replace data
-var superModel =
-SuperBinding(mapBinding); // bring default value: "withValueConvert":12
-superModel.nullableString = 'first value';
-// optional - add notify or convert
-superModel.textField("nullableString", convert: (string) => string + '1');
-debugPrint(modelStringify(superModel.$export()));
-// console see {"nullableString":"first value","fixInt":null,"withValueConvert":12,"listWithType":["a","b","c"],"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":"2023-05-19T00:00:00.000"}
-superModel.$rebind({
-// new data maybe from http response or else
-"nullableString": "second value is call by dataRebind()"
-}, isClear: true); // isClear=true all notifiers and converts
-
-superModel
-    .$default(); // optional - bring default value: "withValueConvert":12
-
-debugPrint(modelStringify(superModel));
-// console see {"nullableString":"second value is call by dataRebind()","fixInt":null,"withValueConvert":12,"listWithType":null,"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":null}
-
-var otherModel = SubBinding();
-superModel.$bindTo(
-otherModel); // Transform different types of models by binding common data MapModels.
-debugPrint(otherModel.nullableString);
-// console see the same as SuperModel.nullableString "second value"
-superModel.nullableString =
-'third value is changed from superModel'; // change one of bindings other also changed.
-debugPrint(otherModel.nullableString);
-// console see 'third value is changed from superModel'
-
-```
-
-- `$types` 显示所有字段类型.
-- `export()`: 只会输出被注解定义过的数据项。 并且输出结果脱离模型同步。
-- `dataRebind()`: 重新绑定数据便于整块替换. 如HTTP返回数据。
-- `bindTo()`: 用于绑定另一个Model使之数据得以同步. 通常用于类型完全不同的模型间转换，如ViewModel转Http Param.
-- 你有两种机会让与产生同步，第一种是构造实例时传入的数据项，第二种就是调用dataRebind()或BindTo()方法.
-
-框架会保证外部对共享数据可见性, 避免直接对物理数据进行操作. 但在子类中, 物理数据是可以被直接访问的.
-
-一般而言，我们允许整块数据替换，禁止非声明的数据项访问。整块替换可类比为传统的new一个模型类，禁止访问未被声明的字段类比为模型里没有定义字段。
-
-
-### use ModelBinding
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/data_binding.gif">
-
-example provide 3 widget binding methods:
-- `Raw Widget`: use flutter raw widget add parameter
-```dart
-/// controller and onChanged must be provided
-TextField(
-  controller: dataBinding.textField('nullableString'),// must be
-  onChanged: (value) {// must be
-      dataBinding.nullableString = value;
-      setState(() {});
-  },
-);
-```
-- `Minimum Binding`: use Binding class, only refresh controller
-```dart
-/// use default context, that Binding class self context
-TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
-);
-```
-- `Custom Binding`: use Binding class, specify context
-
-```dart
-/// use special context control refresh range
-TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
-  context: context,
-);
-```
-
-context in Binding class, can be partially refreshed.
-
-
-### Cross level call
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/sync_binding.gif">
-
-```dart
-
-class SyncWidgetBinding extends StatefulWidget {
-  const SyncWidgetBinding({super.key});
-
-  @override
-  State<StatefulWidget> createState() => SyncWidgetBindingState();
-}
-
-class SyncWidgetBindingState
-    extends BindingState<SyncWidgetBinding, SuperBinding> {
-  /// BindingState Can be found by subWidget
-  @override
-  SuperBinding binding = SuperBinding();
-
-  @override
-  void initState() {
-    super.initState();
-
-    /// binding super widget
-    binding.$sync(
-      fields: ['nullableString'],
-      callback: () {
-        setState(() {});
-      },
-      notifierType: NotifierType.textField,
-    );
-  }
-
+/// 组织WidgetTree
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Cross level call',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            const Text('sync in SupperWidget:'),
-            SizedBox(
-              width: 150,
-              child: TextFieldBinding(
-                binding: binding,
-                property: 'nullableString',
-                //context: context, // base on from
-              ),
-            ),
-            const Divider(),
-            const SubWidget(),
-          ],
+    return ModelStatefulWidget<LoginForm>(
+      model: LoginForm("", ""),
+      child: CallModelState(),
+    );
+  }
+```
+> 范例中ModelStatefulWidget的模型数据类型为LoginForm, 由LoginForm提供;
+> child是调用的Widget;
+
+> 注意: `ModelStatefulWidget`提供数据应当与调用数据不在同一处定义, 如果不跨层数据提供方与调用方互相是可见的, 也就失去了数据共享与状态同步的意义了.
+
+### ModelStatelessWidget
+
+`ModelStatelessWidget`与`ModelStatefulWidget`相似也提供的`model`参数, 直接作为WidgetTree使用.
+
+```dart
+  @override
+  Widget build(BuildContext context) {
+    return ModelStatelessWidget<LoginForm>(
+      model: LoginForm("", ""),
+      child: CallModelStatelessWidget(),
+    );
+  }
+```
+> 范例与`ModelStatefulWidget`的范例很相似, 但两者在面对祖先节点刷新时有所不同.
+> ModelStatelessWidget是无状态所以model会被重新new出来; 
+> 而ModelStatefulWidget刷新后仍能保留数据;
+
+### ModelProviderState
+
+`ModelProviderState`提供了State抽象类, 开发者需要编写子类来继承它. 自定义的子类中可以自由的添加共享的数据作为成员变量.
+
+```dart
+/// ExampleForModelProviderState是ModelProviderState的子类;
+/// ExampleForModelProviderStatefulWidget只是个普通的StatefulWidget
+class ExampleForModelProviderState
+    extends ModelProviderState<ExampleForModelProviderStatefulWidget> {
+  
+  //// 定义共享数据
+  String username = '';
+  String password = '';
+  ////
+  
+  
+  /// CallModelProvider调用方函数
+  @override
+  Widget builder(BuildContext context) => const CallModelProvider();
+}
+```
+> 同样要求数据提供与调用分开定义(范例中是直接下级, 但实际调用处通常是跨很多层级的), 
+> ModelProviderState<ExampleForModelProviderStatefulWidget>中ExampleForModelProviderStatefulWidget只需要是个普通的StateStatefulWidget即可.
+
+> `ModelProviderState`与`ModelStatefulWidget`和`ModelStatelessWidget`相比提供了自由定义共享数据的代码区域.
+
+### ModelProviderWidget
+
+`ModelProviderWidget`是无状态的抽象类, 开发者需要编写其继承类, 扩展共享数据项;
+
+```dart
+/// ModelProviderWidget的继承类
+class ExampleForModelProviderWidget extends ModelProviderWidget {
+  
+  /// 定义共享数据
+  final loginForm = LoginForm('', '');
+  ///
+  
+  /// CallModelProviderWidget是数据调用方
+  ExampleForModelProviderWidget()
+      : super(child: CallModelProviderWidget());
+}
+```
+> 用法与`ModelProviderState`相似, 同样也要求提供方与调用方分别编写,
+> 
+> 与`ModelProviderState`比较, 同样也是无状态刷新丢失数据,与有状态刷新保留数据的区别.
+
+## 数据调用
+
+数据调用分为三个步骤: 建立引用, 连接上下文, 捆绑视图;
+
+### 建立引用
+引用可分为有状态引用与无状态引用
+
+有状态使用: `StateRef`类完成引用实例的创建
+```dart
+  final usernameRef = StateRef<ModelState<LoginForm>, String>(
+    getter: (ModelState<LoginForm> state) => state.model.username,
+    setter: (ModelState<LoginForm> state, String username) =>
+        state.model.username = username,
+  );
+```
+
+无状态使用: `WidgetRef`类完成引用实例的创建
+```dart
+  final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+        widget.model.username = username,
+  );
+```
+> 很容易看到, 引用类型需要提供getter与setter, 另外就是数据提供方的类型.
+
+> 无状态对应的是`ModelStatelessWidget`与`ModelProviderWidget`所提供的数据;
+
+> 有状态对应的是`ModelStatelessWidget`与`ModelProviderState`所提供的数据;
+
+> <font color=yellow>注意: 引用变量应当创建在build()函数之外, 而不是跟随着页面刷新总是创建新的;</font>
+### 连接上下文
+
+使用引用connect()连接context可获得已建立绑定关系的binding实例
+```dart
+  @override
+  Widget build(BuildContext context) {
+    var username = usernameRef.connect(context);
+    ...
+  }
+```
+> 连接上下文应当编写在build()范围里, 当视图刷新时就要重新进行连接, 以保证绑定总是最新的.
+> 
+> connect()所连接的context应当遵守范围越小越好, context即发生变化是刷新的范围.
+
+### 捆绑视图
+
+使用binding填充到某个WidgetTree上
+```dart
+Widget build(BuildContext context) {
+  /// 连接上下文
+  var username = usernameRef.connect(context);
+  
+  return Column(
+    children: [
+      const Text('ModelBinding example for ModelStatelessWidget.',
+          style: TextStyle(
+              fontSize: 36,
+              color: Colors.deepOrange,
+              fontWeight: FontWeight.bold)),
+      const SizedBox(height: 20),
+      const Text('轻便的MVVM双向绑定的框架',
+          style: TextStyle(fontSize: 16, color: Colors.black38)),
+      const SizedBox(height: 30),
+      /// 捆绑TextField
+      BindingTextField(
+        username, /// 传入binding
+        decoration: const InputDecoration(
+          labelText: '用户名',
+          hintText: '请输入用户名',
         ),
+        style: const TextStyle(
+            color: Colors.indigo, fontWeight: FontWeight.bold),
       ),
-    );
-  }
-}
-
-class SubWidget extends StatefulWidget {
-  const SubWidget({super.key});
-
-  @override
-  State<StatefulWidget> createState() => SubWidgetState();
-}
-
-class SubWidgetState extends State<SubWidget> {
-  SubBinding subBinding = SubBinding();
-
-  @override
-  void initState() {
-    super.initState();
-
-    /// binding sub widget
-    ModelBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
-      subBinding,
-      context: context,
-      fields: ['nullableString'],
-      notifierType: NotifierType.textField,
-
-      /// support TextField
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text('sync in SubWidget:'),
-        SizedBox(
-          width: 100,
-          child: TextFieldBinding(
-            binding: subBinding,
-            property: 'nullableString',
-            //context: context, // base on from
-          ),
-        ),
-      ],
-    );
-  }
-}
-```
-
-- `$bindTo()` 仅同步数据.
-- `$sync()` 可以同步数据改变的事件.
-- `$sync(context)` 可以刷新context所在的Widget.
-- `$sync(callback)` 自定义数据改变事件, 需要自行调用setState().
-- `$sync(fields)` 罗列需同步的字段.
-- `$sync(notifierType)` `NotifierType.textField` 可以支持TextField控件.
-
-### use WidgetBinding
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">
-
-```dart
-@override
-Widget build(BuildContext context) => Scaffold(
-  appBar: AppBar(
-    automaticallyImplyLeading: true,
-    title: const Text('Widget src.binding'),
-  ),
-  body: Center(
-    child: Column(
-      children: [
-        RefreshableBuilder(
-          builder: (context) => Column(
-            children: [
-              RadioListTile<RefreshMode>(
-                  title: const Text('self: only control rebuild'),
-                  value: RefreshMode.self,
-                  groupValue: mode,
-                  onChanged: (value) {
-                    mode = value!;
-                    setState(() {});
-                  }),
-              RadioListTile<RefreshMode>(
-                  title: const Text('partially: find RefreshableBuilder to rebuild'),
-                  value: RefreshMode.partially,
-                  groupValue: mode,
-                  onChanged: (value) {
-                    mode = value!;
-                    setState(() {});
-                  }),
-              const Text(
-                'Both self and partially based on context arguments',
-                style: TextStyle(),
-              ),
-              const Divider(),
-              Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 10),
-                child: TextFieldBinding(
-                  binding: binding,
-                  property: 'nullableString',
-                  mode: mode,
-                  //context: context, // base on from
-                ),
-              ),
-              Text('partially refresh point：${binding.nullableString ?? ''}'),
-            ],
-          ),
-        ),
-        ElevatedButton(
-            onPressed: () {
-              setState(() {});
-            },
-            child: const Text('refresh outside')),
-        Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
-      ],
+      const SizedBox(height: 20),
+    ],
+    const SizedBox(height: 30),
+    ElevatedButton(
+      onPressed: () async {
+        /// 写入数据, 以产生页面刷新
+        username.value = '来自指定值的修改';
+      },
+      style: const ButtonStyle(
+        backgroundColor:
+        MaterialStatePropertyAll<Color>(Colors.lightBlue),
+        foregroundColor:
+        MaterialStatePropertyAll<Color>(Colors.white),
+      ),
+      child: const Text('更改当前值'),
     ),
-  ),
-);
+    const SizedBox(height: 30), 
+    Container(
+      width: double.infinity, 
+      padding: const EdgeInsets.symmetric(
+          vertical: 4, horizontal: 10), 
+      color: Colors.blueGrey,
+      /// 绑定值
+      child: Text(
+        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
+      )),
+  );
+}
 ```
+> 范例中通过`BindingTextField`绑定到TextField输入框, 通过bindTo()绑定值;
+> 
+> 通过`username.value = '来自指定值的修改';`赋值立刻产生页面的刷新;
+> 
+> `BindingTextField`还提供了`valueToString`与`stringToValue`用于更多的格式化输入输出, 更多捆绑方式请参见[绑定控件篇]()
 
-- `RefreshableBuilder`类似InheritedWidget, 主要用于提供局部刷新点.
-- `TextFieldBinding.mode`  `RefreshMode.self` only refresh control self; `RefreshMode.partially` base on context find RefreshableBuilder.
-- `TextFieldBinding.context` ==如果刷新的范围太小, 可以考虑把context放到更高层级==
+## ModelBinding vs Provider vs GetX的优势
 
+Provider和GetX都目前流行最广泛的状态管理框架, 但也存在许多被人诟病的机制, 我们正是看到了这些才有了ModelBinding的研发动力.
 
+下面我们来看看ModelBinding在哪些方面做了提升:
+* 刷新机制更便捷: 自动刷新 vs 手动刷新:
 
-### Advanced
-- `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
-- `RefreshableBuilder.of(context)` 可以获得RefreshableBuilder实例. 
-- `RefreshableBuilder.rebuild(context)` 可以局部刷新ui.
-- `BindingSupport` 可以mixin快速建立绑定模型. `mixin`
-- `BindingState` 可以刷新并且绑定数据 `class`
-- `BindingSupport.of(context)` 获得被混入BindingSupport的State实例.
-- `ModelBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
+我们都知道flutter从刚出现的教程到后来提供的许多sdk, 都遵循了手动刷新这一原则, 如`State.setSate()`, `ChangeNotifier.notifyListeners()`等等, 当然Provider/GetX也延续了手动刷新这一做法;
 
-Widget Tree跨层时使用ModelBinding.of(context)能够快速的获取模型数据。
-## Generate
+所以我们在思考能不能做到MVVM级别的自动刷新呢, 类似与改变值时会自动更新与值有关的视图和事件. 我们翻遍了sdk发现了ValueNotifier内部是会在值发生改变时触发一边绑定的事件.
 
-```shell
-flutter pub run build_runner build
-```
-or
+但是建立更新的机制时非常复杂的, 需要维护刷新页面与值的使用关系.
 
-```shell
-dart run build_runner build
-```
+Provider/GetX只是粗暴的把关联的视图全都刷新一遍, 这样做会造成非常多无效的刷新, 本身并不提供细粒度更高的捆绑方式.
 
-## ModelBinding vs Provider vs Get_it
+ModelBinding内部采用了多种捆绑方式, 有的需要刷新页面, 有的只需要触发listener, 真正做到了只对发生修改的部分进行刷新, 最小刷新, 而非总是全量刷新.
 
-Provider框架提供了优秀的Consumer实用程序类，但不幸的是，数据绑定需要创建大量的Provider子类，如ChangeNotificationerProvider、ListenableProvider、ValueListenableProvider和StreamProvider等。这种机制被称为状态管理，尽管Vue和React中有类似的概念，Flutter完全没有必要建立这样的机制，因为Flutter有一个非常完整的上下文。
+* 性能更高: 字段级比较 vs 对象级比较
 
-我认为Provider框架之所以这么设计，主要原因是缺乏数据绑定层，所以你会发现在使用Provider时，页面写得很快，但你需要写如何同步页面外的数据字段，就是非常复杂和痛苦。
+刷新的性能, 取决于刷新的范围, 范围越小性能消耗越小, 刷新范围取决于比较数据的准确度.
 
-ModelBinding认为，在编写Widget Tree时，应该清楚地知道页面的结构、局部刷新的范围以及它们绑定到的数据。这就像是一种穷举所有结果的声明式编码，而不是隐晦的调用addListener（尽管ModelBinding也提供了一种添加监听器的方法，但不推荐使用）；声明式编程也符合大多数人的写作习惯；
+> 判断数据是否发生修改: 
+>
+> * 对象级比较: 只能作为一个整体而难以得知多级属性的变化, 即属性的属性值发生的改变. 也只能得到一个整体的改变与否的标记, 而递归多级属性也是不实现的.
+> Provider/GetX是对象级.
+> * 字段级比较: 由于ModelBinding设计上采用Ref把字段拆出来了, 包括绑定到视图上也是以字段为单位, 所以可以做到字段级比较, 也能得知每个字段对应的视图, 以及刷新机制等等.
+* 代码复杂度更低: 按需开发模式 vs 重Model开发模式
+> * 重Model开发模式: Provider/GetX一般都需要单独编写一个Model类(Provider是各种XXXProvider, GetX则是GetxController).
+>
+>这个Model类本质上是类似Service服务层, 也就是把一些属性私有化, 公开调用方法.
+>
+>这样做会造成Model的函数越来越多, 哪怕有一些函数只在非常少的情况下使用, 因为调用方无法操作私有属性, 也必须汇总到Model上来.
+>
+> Model可能适配一两个调用方可能还好, 但如果调用方越来越多了, 这种"集中式管理"势必复杂度会上生的.
+>
+> * 按需开发模式: 我们分析了Service被多年流传下来的MVC模式, 实际并不适合前端项目, 原因是前端项目的模型数据实际是与页面控件深度绑定的, 页面随时可能改变, 那么数据随时发生改变.
+> 
+> 共享数据即使需要, 也只会是显示页面数据中很少的一部分, 强行套用Service, 就会发现大量函数需要通过页面参数传递, 而且每个页面传递和处理很难相同.
+> 
+> 这也不难理解, Service适合后端设计, 因为后端只管数据增删查改, 但前端还要管执行顺序和触发事件以及组装控件所需格式数据, 并不是这么规则的数据.
+> 
+> 既然Model并不适合管太多, 所以我们设计的思想是, 还业务处理能力给回调用的显示方, 只有共性的功能才抽到Model上.
+> 
+> 由于ModelBinding提供的字段级别的双向绑定, 调用方处理业务非常方便.
+> 
 
-此外，ModelBinding认为，在多个数据项之间建立同步远不如一同份数据在多处引用。要做到这一点，就要归功于ModelBinding对MapModel框架的使用，其特点是将Map用作模型。转换模型只意味着同一个Map的可见性不同（简单理解为一推getter/setter不同），本质仍然是同一个实例。
+* 改造成本更低: 
+> 我们一直在思考一个问题, 怎么样降低一个原本非状态管理的项目, 转变为状态管理项目?
+> (原本每个页面仅调用自身的数据, 改为部分数据来自共享数据)
+>
+> 我们先来看Provider/GetX, 他们需要把共享数据抽到新建Model类, 然后把分散到页面里对共享数据的读写操作, 全部抽到Model类里做成函数, 最后需要修改原页面调用Model函数的方式, 还有一步就是由于全量刷新, 需要将保留的widget做成StatefulWidget以保证数据不丢失.
+>
+> 这样看下来改造成本还是非常大的.
+>
+> 我们在设计ModelBinding是核心的思想就是"拿来主义", 也就是拿现有最接近的页面上直接改.
+>
+> 首先, 如果已经有一个页面的数据非常齐全了, 就拿这个页面继承特定的`ModelProviderState`或`ModelProviderWidget`, 主要看是有状态还是无状态的.
+>
+> 其次, 在调用页面新建Ref字段引用对象, build里连接context获得binding, 然后用binding去替换掉原先调用的位置.
+>
+> 由于, binding等同于把数据下载到本地, 所以生命周期与状态也是与原页面一致的, 不需要考虑改写widget的状态类型.
+>
+> 这么设计能最大程度不去更改原来的调用逻辑, 完全符合"开闭原则", 对新增与扩展开放, 对修改闭塞.
 
-此外，ModelBinding绑定层还提供了一个更用户友好的工具箱，例如TextFieldBinding，它可以用作控件输入和输出，以双向绑定数据项。
+<h4>如果觉得我们这个框架不错, 点赞/邮件进行交流.</h4>
+<ellise@qq.com>
 
-与GetIT框架相比，首先，GetIT是一个数据的包装类。在使用它时，原始数据需要封装在GetIT中，这与vue3的ref类似，但不能像vue3那样用作递归代理，这会让开发人员封装子项。它也可以打包一些Widget，但这也是开发人员不断打包和解包工作负载增加的结果。
-
-ModelBinding认为，将细节和工作负载交给开发人员并不是一个非常明智的选择。也许它可以在底层细节中实现，但没有必要暴露出来。这并不优雅，也不符合大多数人的写作习惯。这就像1+1。尽可能地，它不应该是a.add(b)。它应该考虑加号的运算符重载，并保持1+1的写入方法；
-
-事实上，底层ModelBinding的许多细节也参考了GetIT实现，但我们提供的API更加用户友好。此外，GetIT还需要像Provider一样建立额外的绑定关系。
-
-还是那句话，无论同步数据的机制多健全，永远没有只维护一份共用的数据来的好；
-
-
-[MapModel](https://pub.flutter-io.cn/packages/map_model)
 [ModelBinding](https://pub.flutter-io.cn/packages/model_binding)

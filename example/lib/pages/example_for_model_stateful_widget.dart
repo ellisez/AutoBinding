@@ -25,13 +25,13 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
 class CallModelState extends StatelessWidget {
   CallModelState({super.key});
 
-  final usernameBinder = StateRef<ModelState<LoginForm>, String>(
+  final usernameRef = StateRef<ModelState<LoginForm>, String>(
     getter: (ModelState<LoginForm> state) => state.model.username,
     setter: (ModelState<LoginForm> state, String username) =>
         state.model.username = username,
   );
 
-  final passwordBinder = StateRef<ModelState<LoginForm>, String>(
+  final passwordRef = StateRef<ModelState<LoginForm>, String>(
     getter: (ModelState<LoginForm> state) => state.model.password,
     setter: (ModelState<LoginForm> state, String password) =>
         state.model.password = password,
@@ -39,11 +39,11 @@ class CallModelState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var username = usernameBinder.connect(context);
+    var username = usernameRef.connect(context);
 
     // username.bindTo();
 
-    var password = passwordBinder.connect(context);
+    var password = passwordRef.connect(context);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -132,8 +132,8 @@ class CallModelState extends StatelessWidget {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var username = usernameBinder.connect(subContext);
-                  var password = passwordBinder.connect(subContext);
+                  var username = usernameRef.connect(subContext);
+                  var password = passwordRef.connect(subContext);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(

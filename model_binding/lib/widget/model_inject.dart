@@ -12,14 +12,14 @@ class Binding<P extends ShouldNotifyDependents, T> extends ChangeNotifier {
   late final P _provider;
 
   Binding(this._context, this._ref) {
-    assert(_context.debugDoingBuild,
+    assert(_context.owner?.debugBuilding ?? _context.debugDoingBuild,
         'new Binding can only run during the method of build() calls.');
     _provider = _ref.findProvider(_context);
   }
 
   T bindTo() {
     var newValue = value;
-    if (_context.debugDoingBuild) {
+    if (_context.owner?.debugBuilding ?? _context.debugDoingBuild) {
       _context.dependOnInheritedWidgetOfExactType<ModelDependentManager>(
         aspect: DependentIsChange<P, T>(binder: _ref, value: newValue),
       );
@@ -46,7 +46,7 @@ abstract class Ref<P extends ShouldNotifyDependents, T> {
   Ref({required this.getter, required this.setter});
 
   Binding<P, T> connect(BuildContext context) {
-    assert(context.debugDoingBuild,
+    assert(context.owner?.debugBuilding ?? context.debugDoingBuild,
         'connect() can only run during the method of build() calls.');
     return Binding(context, this);
   }

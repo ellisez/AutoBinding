@@ -15,13 +15,13 @@ class CallModelProviderWidget extends StatelessWidget {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final usernameBinder = WidgetRef<ExampleForModelProviderWidget, String>(
+  final usernameRef = WidgetRef<ExampleForModelProviderWidget, String>(
     getter: (ExampleForModelProviderWidget widget) => widget.loginForm.username,
     setter: (ExampleForModelProviderWidget widget, String username) =>
         widget.loginForm.username = username,
   );
 
-  final passwordBinder = WidgetRef<ExampleForModelProviderWidget, String>(
+  final passwordRef = WidgetRef<ExampleForModelProviderWidget, String>(
     getter: (ExampleForModelProviderWidget widget) => widget.loginForm.password,
     setter: (ExampleForModelProviderWidget widget, String password) =>
         widget.loginForm.password = password,
@@ -29,11 +29,11 @@ class CallModelProviderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var username = usernameBinder.connect(context);
+    var username = usernameRef.connect(context);
 
     username.value;
 
-    var password = passwordBinder.connect(context);
+    var password = passwordRef.connect(context);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -55,26 +55,26 @@ class CallModelProviderWidget extends StatelessWidget {
                 const Text('轻便的MVVM双向绑定的框架',
                     style: TextStyle(fontSize: 16, color: Colors.black38)),
                 const SizedBox(height: 30),
-                // BindingTextField(
-                //   username,
-                //   decoration: const InputDecoration(
-                //     labelText: '用户名',
-                //     hintText: '请输入用户名',
-                //   ),
-                //   style: const TextStyle(
-                //       color: Colors.indigo, fontWeight: FontWeight.bold),
-                // ),
+                BindingTextField(
+                  username,
+                  decoration: const InputDecoration(
+                    labelText: '用户名',
+                    hintText: '请输入用户名',
+                  ),
+                  style: const TextStyle(
+                      color: Colors.indigo, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 20),
-                // BindingTextField(
-                //   password,
-                //   decoration: const InputDecoration(
-                //     labelText: '密码',
-                //     hintText: '请输入密码',
-                //   ),
-                //   obscureText: true,
-                //   style: const TextStyle(
-                //       color: Colors.indigo, fontWeight: FontWeight.bold),
-                // ),
+                BindingTextField(
+                  password,
+                  decoration: const InputDecoration(
+                    labelText: '密码',
+                    hintText: '请输入密码',
+                  ),
+                  obscureText: true,
+                  style: const TextStyle(
+                      color: Colors.indigo, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 30),
                 Row(
                   children: [
@@ -124,15 +124,15 @@ class CallModelProviderWidget extends StatelessWidget {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var username = usernameBinder.connect(subContext);
-                  var password = passwordBinder.connect(subContext);
+                  var username = usernameRef.connect(subContext);
+                  var password = passwordRef.connect(subContext);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.value}\npassword = ${password.value}',
+                        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

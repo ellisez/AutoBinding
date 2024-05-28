@@ -1,21 +1,20 @@
-# ModelBinding
 
-[en](https://github.com/ellisez/ModelBinding/blob/master/README.md) [cn](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
+# ModelBinding v2
 
-ModelBinding is a Widget data binding framework implemented using MapModel, and its biggest advantage is that modifying data can automatically refresh corresponding Widgets.
+[`en`](https://github.com/ellisez/ModelBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
 
-Unlike traditional mvvm frameworks, it does not require the establishment and maintenance of additional bundling relationships. Its core idea is "get and bundle" - which is more in line with data usage habits.
+ModelBinding is a lightweight MVVM bidirectional binding state management framework for data sharing and synchronization.
 
-[MapModel](https://pub.flutter-io.cn/packages/map_model) is currently the most efficient model implementation framework, it uses Map to implement a model.
+ModelBinding v2 adopts a new responsive programming approach, inspired by Vue and React, The new version of v2 allows for the use of existing widgets and build() extensions, which are a regular widget and build() that were originally non bidirectional, without the need to refactor a large number of WidgetTree hierarchical relationships and smoothly establish binding relationships.
 
-Map instances only need to determine the method of obtaining fields and control their visibility to obtain different models, such as Entity, VO, DTO, etc., instead of constantly opening up new memory space to move data, reducing unnecessary losses.
+Compared to the older version of v1, data providers no longer need to force the establishment of model classes for binding, data callers do not need to forcibly inherit specific State and StatelessWidgets, and dynamic binding does not require manual release;
+
+The overall design principle of the v2 version is to leave the data structure of the data provider to the maximum extent possible for developers, and to leave the binding method of the data caller to the maximum extent possible for developers.
 
 ## Setup
 
 ```shell
 flutter pub add model_binding
-flutter pub add build_runner --dev
-flutter pub add model_binding_builder --dev
 ```
 
 or
@@ -24,416 +23,268 @@ or
 dependencies:
   model_binding: any
   ...
-
-dev_dependencies:
-  build_runner: any
-  model_binding_builder: any
-  ...
 ```
 
-## Lints
+## Data provider
 
-### analysis_options.yaml
-```yaml
-include: package:model_binding/lints.yaml
+The system provides four ways:  `ModelStatefulWidget`, `ModelStatelessWidget`, `ModelProviderState`, `ModelProviderWidget`
 
-```
-
-## Example
-
-### model
-
-provided `@Model` `@ModelBinding` annotation
-
-[@Model]() can use for Map as Model, like Entity, Vo, Dto. see [MapModel](https://pub.flutter-io.cn/packages/map_model)
-
-[@Binding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
-
-That is to say, the interface for modifying values will be partially refreshed, the display of values at the reference point, and the control input will also change the new value and be notified.
+### ModelStatefulWidget
+`ModelStatefulWidget` provides a `model` parameter and gives it a generic, which can be directly used as a WidgetTree in build(), making it easier to use existing data types;
 
 ```dart
-import 'package:model_binding/model_binding.dart';
-
-part 'your_model.g.dart';
-
-@Model([
-  Property<String?>('nullableString', value: '"123"'),
-  Property<int>('fixInt'),
-  Property('withValueConvert', value: '12'),
-  Property<List<String>?>('listWithType'),
-  Property<List?>('listNoType'),
-  Property<Map<String?, dynamic>?>('mapWithType'),
-  Property<Map?>('mapNoType'),
-  Property<DateTime>('dateTime'),
-])
-class YourModel extends _YourModelImpl {
-  YourModel([super.data]);
-}
-
-@Binding([
-  Property<String?>('nullableString', value: '"123"'),
-  Property<int>('fixInt'),
-  Property('withValueConvert', value: '12'),
-  Property<List<String>?>('listWithType'),
-  Property<List?>('listNoType'),
-  Property<Map<String?, dynamic>?>('mapWithType'),
-  Property<Map?>('mapNoType'),
-  Property<DateTime>('dateTime'),
-], converts: {
-  Map<String?, dynamic>: 'castMap',
-})
-class SuperBinding extends _SuperBindingImpl {
-  SuperBinding([super.data]);
-}
-
-@Binding([
-  Property<String>('subProperty', value: '"default subProperty"'),
-])
-class SubBinding extends SuperBinding with _SubBindingMixin {
-  SubBinding([super.data]);
-}
-
-Map<String?, dynamic> castMap(String property, dynamic value) {
-  if (property == 'mapWithType') {
-    // hit Field
-  }
-  return value;
-}
-
-
-```
-
-- `@Model.converts` define the convert of Type, see Default Support Type: List<String>, int, double, DateTime
-- use extends class: _${yourClassName}Impl, Because of single inheritance, Mixin can be considered.
-- use mixin: _${yourClassName}Mixin; Must inherit ModelBinding and its subclasses.
-
-### Model transformation
-
-```dart
-var mapBinding = MapBinding();
-mapBinding['a'] = 12;
-mapBinding['b'] = '34';
-mapBinding['c'] = [56, '78'];
-
-mapBinding['d'] = ListBinding<int>([90, 01]); // use generic
-mapBinding['e'] = MapBinding<String>({
-// use generic
-'f': '23',
-'g': '45',
-});
-
-// export offline data
-var export =
-mapBinding.export(includes: {'a', 'b', 'd', 'e'}, excludes: {'b'});
-var str = const JsonEncoder().convert(export);
-// console see {"a":12,"d":[90,1],"e":{"f":"23","g":"45"}}
-debugPrint(str);
-
-// default convert type
-mapBinding['listWithType'] =
-'a b c'; // auto convert, List<String> default sep is ' '
-mapBinding['dateTime'] =
-'2023-05-19'; // auto convert, DateTime accept String & int
-// model replace data
-var superModel =
-SuperBinding(mapBinding); // bring default value: "withValueConvert":12
-superModel.nullableString = 'first value';
-// optional - add notify or convert
-superModel.textField("nullableString", convert: (string) => string + '1');
-debugPrint(modelStringify(superModel.$export()));
-// console see {"nullableString":"first value","fixInt":null,"withValueConvert":12,"listWithType":["a","b","c"],"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":"2023-05-19T00:00:00.000"}
-superModel.$rebind({
-// new data maybe from http response or else
-"nullableString": "second value is call by dataRebind()"
-}, isClear: true); // isClear=true all notifiers and converts
-
-superModel
-    .$default(); // optional - bring default value: "withValueConvert":12
-
-debugPrint(modelStringify(superModel));
-// console see {"nullableString":"second value is call by dataRebind()","fixInt":null,"withValueConvert":12,"listWithType":null,"listNoType":null,"mapWithType":null,"mapNoType":null,"dateTime":null}
-
-var otherModel = SubBinding();
-superModel.$bindTo(
-otherModel); // Transform different types of models by binding common data MapModels.
-debugPrint(otherModel.nullableString);
-// console see the same as SuperModel.nullableString "second value"
-superModel.nullableString =
-'third value is changed from superModel'; // change one of bindings other also changed.
-debugPrint(otherModel.nullableString);
-// console see 'third value is changed from superModel'
-
-```
-
-- `$types` Show all field Types.
-- `$export()`: Only export defined data items. And out of sync.
-- `$rebind()`: Rebind data for easy block replacement of data items. like Data returned by HTTP.
-- `$bindTo()`: Used to bind another model to synchronize its data. Commonly used for different types of model transformations.
-- You have two opportunities to bind data, one is the parameters passed in during instance construction, and the other is to call dataRebind() or BindTo().
-
-The framework ensures external visibility of various models that share data, avoiding direct manipulation of physical data. But in inheritance classes, physical data can be directly manipulated.
-
-Generally speaking, we allow whole block data substitution and prohibit access to non declared data items. The whole block replacement can be compared to the traditional new model class, which prohibits access to undeclared fields. The analogy is that there are no defined fields in the model.
-
-### Cross level call
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/sync_binding.gif">
-
-```dart
-
-class SyncWidgetBinding extends StatefulWidget {
-  const SyncWidgetBinding({super.key});
-
-  @override
-  State<StatefulWidget> createState() => SyncWidgetBindingState();
-}
-
-class SyncWidgetBindingState
-    extends BindingState<SyncWidgetBinding, SuperBinding> {
-  /// BindingState Can be found by subWidget
-  @override
-  SuperBinding binding = SuperBinding();
-
-  @override
-  void initState() {
-    super.initState();
-
-    /// binding super widget
-    binding.$sync(
-      fields: ['nullableString'],
-      callback: () {
-        setState(() {});
-      },
-      notifierType: NotifierType.textField,
-    );
-  }
-
+/// add WidgetTree
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Cross level call',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            const Text('sync in SupperWidget:'),
-            SizedBox(
-              width: 150,
-              child: TextFieldBinding(
-                binding: binding,
-                property: 'nullableString',
-                //context: context, // base on from
-              ),
-            ),
-            const Divider(),
-            const SubWidget(),
-          ],
+    return ModelStatefulWidget<LoginForm>(
+      model: LoginForm("", ""),
+      child: CallModelState(),
+    );
+  }
+```
+> The model data type of the ModelStatefulWidget in the example is LoginForm, provided by LoginForm;
+> 
+> child is a regular widget called;
+
+> Note: The data provided by `ModelStatefulWidget` should not be defined at the same location as the calling data. If the data provider and caller are not visible to each other across layers, the meaning of data sharing and state synchronization will be lost.
+
+### ModelStatelessWidget
+
+`ModelStatelessWidget`, similar to `ModelStatefulWidget`, also provides a `model` parameter that can be used directly as a WidgetTree.
+
+```dart
+  @override
+  Widget build(BuildContext context) {
+    return ModelStatelessWidget<LoginForm>(
+      model: LoginForm("", ""),
+      child: CallModelStatelessWidget(),
+    );
+  }
+```
+> The example is similar to the example of 'ModelStatefulWidget', but they differ when facing ancestor node refresh.
+> The ModelStatelessWidget is stateless, so the model will be recreated;
+> The ModelStatefulWidget can still retain data after refreshing;
+
+### ModelProviderState
+
+`ModelProviderState` provides an abstract class called State, and developers need to write subclasses to inherit it Shared data can be freely added as member variables in custom subclasses.
+
+```dart
+/// ExampleForModelProviderState is a subclass of ModelProviderState;
+/// ExampleForModelProviderStatefulWidget is just a regular StatefullWidget.
+class ExampleForModelProviderState
+    extends ModelProviderState<ExampleForModelProviderStatefulWidget> {
+  
+  //// declare sharing data
+  String username = '';
+  String password = '';
+  ////
+  
+  
+  /// CallModelProvider calling
+  @override
+  Widget builder(BuildContext context) => const CallModelProvider();
+}
+```
+> Similarly, it is required that data provision be defined separately from invocation (in the example, it is a direct subordinate, but the actual invocation is usually across many levels),
+> In ModelProviderState<ExampleForModelProviderStatefulWidget>, the ExampleForModelProviderStatefulWidget only needs to be a regular StatefulWidget.
+
+> `ModelProviderState` provides a code area for freely defining shared data compared to `ModelStatefulWidget` and `ModelStatelessWidget`.
+
+### ModelProviderWidget
+
+`ModelProviderWidget` is a stateless abstract class, and developers need to write its inheritance class to extend shared data items;
+
+```dart
+/// Inheritance class of ModelProviderWidget
+class ExampleForModelProviderWidget extends ModelProviderWidget {
+  
+  /// declare sharing data
+  final loginForm = LoginForm('', '');
+  ///
+  
+  /// CallModelProviderWidget calling
+  ExampleForModelProviderWidget()
+      : super(child: CallModelProviderWidget());
+}
+```
+> The usage is similar to 'ModelProviderState', which also requires the provider and caller to write separately,
+> Compared to `ModelProviderState`, it is also the difference between stateless refresh losing data and stateful refresh preserving data.
+
+## Data calling
+
+The data call is divided into three steps: establishing references, connecting context, and binding views;
+
+### establishing references
+References can be divided into stateful references and stateless references
+
+State based usage: The 'StateRef' class completes the creation of reference instances
+```dart
+  final usernameRef = StateRef<ModelState<LoginForm>, String>(
+    getter: (ModelState<LoginForm> state) => state.model.username,
+    setter: (ModelState<LoginForm> state, String username) =>
+        state.model.username = username,
+  );
+```
+
+Stateless use: The 'WidgetRef' class completes the creation of reference instances
+```dart
+  final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+        widget.model.username = username,
+  );
+```
+> It is easy to see that the reference type needs to provide a getter and setter, as well as the type of the data provider.
+
+> Stateless corresponds to the data provided by `ModelStatelessWidget` and `ModelProviderWidget`;
+
+> State corresponds to the data provided by `ModelStatelessWidget` and `ModelProviderState`;
+
+> <font color=yellow>Note: Referencing variables should be created outside of the build() function, rather than always creating new ones following page refresh;</font>
+### connecting context
+
+Using the reference connection() to connect to the context can obtain a binding instance with an established binding relationship.
+```dart
+  @override
+  Widget build(BuildContext context) {
+    var username = usernameRef.connect(context);
+    ...
+  }
+```
+> The connection context should be written within the build() scope, and when the view is refreshed, it should be reconnected to ensure that the binding is always up-to-date.
+>
+> The context connected by connect() should adhere to a smaller scope as much as possible, The change in context is the refresh range.
+
+### binding views
+
+Fill a WidgetTree with binding
+```dart
+Widget build(BuildContext context) {
+  /// connecting context
+  var username = usernameRef.connect(context);
+  
+  return Column(
+    children: [
+      const Text('ModelBinding example for ModelStatelessWidget.',
+          style: TextStyle(
+              fontSize: 36,
+              color: Colors.deepOrange,
+              fontWeight: FontWeight.bold)),
+      const SizedBox(height: 20),
+      const Text('轻便的MVVM双向绑定的框架',
+          style: TextStyle(fontSize: 16, color: Colors.black38)),
+      const SizedBox(height: 30),
+      /// binding TextField
+      BindingTextField(
+        username, /// 传入binding
+        decoration: const InputDecoration(
+          labelText: '用户名',
+          hintText: '请输入用户名',
         ),
+        style: const TextStyle(
+            color: Colors.indigo, fontWeight: FontWeight.bold),
       ),
-    );
-  }
-}
-
-class SubWidget extends StatefulWidget {
-  const SubWidget({super.key});
-
-  @override
-  State<StatefulWidget> createState() => SubWidgetState();
-}
-
-class SubWidgetState extends State<SubWidget> {
-  SubBinding subBinding = SubBinding();
-
-  @override
-  void initState() {
-    super.initState();
-
-    /// binding sub widget
-    ModelBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
-      subBinding,
-      context: context,
-      fields: ['nullableString'],
-      notifierType: NotifierType.textField,
-
-      /// support TextField
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text('sync in SubWidget:'),
-        SizedBox(
-          width: 100,
-          child: TextFieldBinding(
-            binding: subBinding,
-            property: 'nullableString',
-            //context: context, // base on from
-          ),
-        ),
-      ],
-    );
-  }
-}
-```
-
-- `$bindTo()` only synchronize data.
-- `$sync()` can synchronize change data events. 
-- `$sync(context)` Will refresh the context widget.
-- `$sync(callback)` Custom data changed Events, need call setState().
-- `$sync(fields)` List the synchronized fields.
-- `$sync(notifierType)` `NotifierType.textField` support TextField Widget.
-
-
-### use ModelBinding
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/data_binding.gif">
-
-example provide 3 widget binding methods:
-- `Raw Widget`: use flutter raw widget add parameter
-```dart
-/// controller and onChanged must be provided
-TextField(
-  controller: dataBinding.textField('nullableString'),// must be
-  onChanged: (value) {// must be
-      dataBinding.nullableString = value;
-      setState(() {});
-  },
-);
-```
-- `Minimum Binding`: use Binding class, only refresh controller
-```dart
-/// use default context, that Binding class self context
-TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
-);
-```
-- `Custom Binding`: use Binding class, specify context
-
-```dart
-/// use special context control refresh range
-TextFieldBinding(
-  binding: dataBinding,
-  property: 'nullableString',
-  context: context,
-);
-```
-
-context in Binding class, can be partially refreshed.
-
-### use WidgetBinding
-
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">
-
-```dart
-@override
-Widget build(BuildContext context) => Scaffold(
-  appBar: AppBar(
-    automaticallyImplyLeading: true,
-    title: const Text('Widget src.binding'),
-  ),
-  body: Center(
-    child: Column(
-      children: [
-        RefreshableBuilder(
-          builder: (context) => Column(
-            children: [
-              RadioListTile<RefreshMode>(
-                  title: const Text('self: only control rebuild'),
-                  value: RefreshMode.self,
-                  groupValue: mode,
-                  onChanged: (value) {
-                    mode = value!;
-                    setState(() {});
-                  }),
-              RadioListTile<RefreshMode>(
-                  title: const Text('partially: find RefreshableBuilder to rebuild'),
-                  value: RefreshMode.partially,
-                  groupValue: mode,
-                  onChanged: (value) {
-                    mode = value!;
-                    setState(() {});
-                  }),
-              const Text(
-                'Both self and partially based on context arguments',
-                style: TextStyle(),
-              ),
-              const Divider(),
-              Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 10),
-                child: TextFieldBinding(
-                  binding: binding,
-                  property: 'nullableString',
-                  mode: mode,
-                  //context: context, // base on from
-                ),
-              ),
-              Text('partially refresh point：${binding.nullableString ?? ''}'),
-            ],
-          ),
-        ),
-        ElevatedButton(
-            onPressed: () {
-              setState(() {});
-            },
-            child: const Text('refresh outside')),
-        Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
-      ],
+      const SizedBox(height: 20),
+    ],
+    const SizedBox(height: 30),
+    ElevatedButton(
+      onPressed: () async {
+        /// write data, to refresh view
+        username.value = '来自指定值的修改';
+      },
+      style: const ButtonStyle(
+        backgroundColor:
+        MaterialStatePropertyAll<Color>(Colors.lightBlue),
+        foregroundColor:
+        MaterialStatePropertyAll<Color>(Colors.white),
+      ),
+      child: const Text('更改当前值'),
     ),
-  ),
-);
+    const SizedBox(height: 30), 
+    Container(
+      width: double.infinity, 
+      padding: const EdgeInsets.symmetric(
+          vertical: 4, horizontal: 10), 
+      color: Colors.blueGrey,
+      /// binding value
+      child: Text(
+        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
+      )),
+  );
+}
 ```
+> In the example, bind to the TextField input box through `BindingTextField` and bind the value through bindTo();
+>
+> Modify from specified value through `username.value = '来自指定值的修改'` Assign values to immediately generate page refresh;
+>
+> `BindingTextField` also provides `valueToString` and `stringToValue` for more formatted input and output. For more bundling methods, please refer to the [Bind Control section]().
 
-- `RefreshableBuilder` is similar to InheritedWidget, mainly used to mark a local refresh point.
-- `TextFieldBinding.mode`  `RefreshMode.self` only refresh control self; `RefreshMode.partially` base on context find RefreshableBuilder.
-- `TextFieldBinding.context` <span style="color:yellow;">If the refresh range is too small, a higher-level context can be provided</span>
+## ModelBinding vs Provider vs GetX
 
+Both Provider and GetX are currently the most widely used state management frameworks, but there are also many criticized mechanisms that have given us the impetus to develop ModelBinding.
 
+Let's take a look at where ModelBinding has improved:
+* More convenient refresh mechanism: automatic refresh vs manual refresh
 
-### Advanced
-- `addListener` be called when value has Changed. need `dispose()` release. but not recommended.
-- `RefreshableBuilder.of(context)` can get RefreshableBuilder instance.
-- `RefreshableBuilder.rebuild(context)` can local refresh ui.
-- `BindingSupport` use can mixin it to quick build binding. `mixin`
-- `BindingState` can Refreshable and build binding. `class`
-- `BindingSupport.of(context)` can get State with BindingSupport instance.
-- `ModelBinding.of(context)` can get binding model instance. equivalent to `BindingSupport.of(context).bind`
+We all know that Flutter has followed the principle of manual refreshing from its initial tutorials to many subsequent SDKs, such as `State. setSate()`, `ChangeNotify.notifyListeners()`, and so on. Of course, Provider/GetX has also continued this practice of manual refreshing;
 
-`ModelBinding.of(context)` used for cross level calls to widget trees
+So we are thinking about whether we can achieve automatic refreshing at the MVVM level, similar to automatically updating views and events related to values when changing them We searched through the SDK and found that the Value Notify triggers a side bound event when the value changes.
 
-## Generate
+However, establishing an update mechanism is very complex and requires maintaining the usage relationship between refreshing pages and values.
 
-```shell
-flutter pub run build_runner build
-```
-or
+Provider/GetX only rudely refreshes all associated views, which can cause a lot of invalid refreshes and does not provide a finer grained binding method.
 
-```shell
-dart run build_runner build
-```
+ModelBinding employs multiple bundling methods internally, some requiring page refresh and others simply triggering a listener, truly achieving a minimum refresh of only the modified parts, rather than always refreshing in full.
 
-## ModelBinding vs Provider vs Get_it
-The Provider framework provides excellent Consumer utility classes, but unfortunately, data binding requires the creation of a large number of Provider subclasses, such as ChangeNotifierProvider, ListenableProvider, ValueListenableProvider, StreamProvider, and so on. This mechanism is called state management, and although there are similar concepts in Vue and React, it is completely unnecessary for Flutter to establish such a mechanism because Flutter has a very complete context.
+* Higher performance: field level comparison vs. object level comparison
 
-I think the main reason for the design of the Provider framework is the lack of a data binding layer, so you will find that when using the Provider, the page is quickly written, but you need to write about how to synchronize data fields outside of the page.
+The performance of refreshing depends on the refresh range. The smaller the range, the lower the performance consumption. The refresh range depends on the accuracy of the compared data.
 
-ModelBinding believes that when writing a widget tree, the structure of the page, the range of local refreshes, and the data they are bound to should be clearly known. This is like a declarative approach that exhausts the results, rather than implying an addListener (although ModelBinding also provides a way to add listeners, it is not recommended); Declarative programming also conforms to most people's writing habits; In addition, ModelBinding believes that establishing synchronization between multiple data items is not as good as having the same data referenced in multiple places. This is thanks to the use of the MapModel framework by ModelBinding, which is characterized by the Map being used as a model. Transforming a model only means that the visibility of the same Map is different, and the essence is still the same instance.
+> Determine whether the data has been modified:
+>
+> * Object level comparison: It can only be seen as a whole and is difficult to determine the changes in multi-level attributes, that is, the changes in attribute values It can only obtain a marker for the overall change, and recursive multi-level attributes are also not implemented.
+> Provider/GetX is Object level comparison.
+> * Field level comparison: Due to the use of Ref in the design of ModelBinding, which separates fields and binds them to views on a field by field basis, field level comparison can be achieved, and the corresponding view and refresh mechanism for each field can be determined.
+* Lower code complexity: on-demand development mode vs. heavy model development mode
+> * Model heavy development mode: Providers/GetX usually require a separate Model class to be written (Providers are various XXXProviders, GetX is GetxController.
+>
+> This Model class is essentially similar to the Service layer, which privatizes some properties and publicly calls methods
+>
+> This will result in more and more functions in the Model, even if some functions are only used in very few cases, because the caller cannot manipulate private properties and must be summarized in the Model.
+>
+> The Model may be suitable for one or two callers, but if there are more and more callers, this centralized management will inevitably increase in complexity.
+>
+> * On demand development mode: We analyzed the MVC mode that Service has been passed down for many years and found that it is not suitable for front-end projects. The reason is that the model data of front-end projects is actually deeply bound to page controls, and the page can change at any time, so the data can change at any time.
+>
+> Even if shared data is needed, it will only be a small part of the displayed page data. Forcefully applying Service will find that a large number of functions need to be passed through page parameters, and it is difficult to pass and process them the same on each page.
+>
+> It's not difficult to understand, Service is suitable for backend design because the backend only focuses on data addition, deletion, querying, and modification, but the frontend also needs to manage the execution order, triggering events, and formatting data required for assembling controls, which is not such a regular data.
+>
+> Since the Model is not suitable for managing too many, our design idea is to provide business processing capabilities to the display side for callbacks, and only common functions are drawn to the Model.
+>
+> Due to the field level bidirectional binding provided by ModelBinding, it is very convenient for the caller to handle business.
+>
 
-In addition, the ModelBinding binding layer also provides a more user-friendly toolbox, such as TextFieldBinding, which can be used as control input and output to bind data items in both directions.
+* Lower renovation costs:
+> We have been thinking about a question, how to reduce a project that was originally non state managed and transform it into a state managed project?
+>(Originally, each page only called its own data, but now some of the data comes from shared data)
+>
+>Let's first take a look at Provider/GetX. They need to extract shared data into a new Model class, and then scatter the read and write operations on the shared data into the Model class to make functions. Finally, they need to modify the way the original page calls the Model function. Another step is to make the reserved widgets into StatefulWidgets to ensure data is not lost due to full refresh
+>
+>From this perspective, the cost of renovation is still very high
+>
+>Our core idea in designing ModelBinding is "borrowing", which means directly modifying the existing closest page
+>
+>Firstly, if there is already a page with very complete data, inherit a specific 'ModelProviderState' or 'ModelProviderWidget' from that page, mainly depending on whether it is stateful or stateless
+>
+>Secondly, create a new Ref field reference object on the calling page, Connect context in build to obtain a binding, and then use the binding to replace the original calling location
+>
+>Due to, Binding is equivalent to downloading data locally, so the lifecycle and state are also consistent with the original page, and there is no need to consider rewriting the state type of the widget
+>
+>This design can minimize the need to change the original calling logic, fully comply with the "open and closed principle", open to new additions and extensions, and block modifications
 
+<h4>If you think our framework is good, like/email for communication.</h4>
+<ellise@qq.com>
 
-
-Compared to the GetIT framework, firstly, GetIT is a wrapper class for data. When using it, the original data needs to be wrapped in GetIT, which is similar to the ref of vue3, but cannot be used as a recursive proxy like vue3, which will keep developers wrapping subitems. It can also package some widgets, but it is also the result of developers increasing their workload to continuously package and unpack them.
-
-ModelBinding believes that it is not a very wise choice to hand over the details and workload to developers. Maybe it can be implemented in the underlying details, but it is unnecessary to expose it. This is not elegant, and it does not conform to the writing habits of most people. This is like 1+1. As far as possible, it should not be a.add (b). It should consider the operator overloading of the plus sign, and maintain the writing method of 1+1;
-
-In fact, many details of the underlying ModelBinding also refer to the GetIT implementation, but the API we provide is more user-friendly. In addition, GetIT also needs to establish additional binding relationships like the provider. In the same sentence, no matter how much data is synchronized, it is never better to have the same data;
+[ModelBinding](https://pub.flutter-io.cn/packages/model_binding)
