@@ -156,14 +156,30 @@ class ExampleForModelProviderWidget extends ModelProviderWidget {
 > 
 > connect()所连接的context应当遵守范围越小越好, context即发生变化是刷新的范围.
 
+### 直接连接
+```dart
+var password = Binding(
+  context,
+  getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+  setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+  widget.model.password = password,
+);
+```
+
 ### 捆绑视图
 
 使用binding填充到某个WidgetTree上
 ```dart
 Widget build(BuildContext context) {
-  /// 连接上下文
+  /// connecting context
   var username = usernameRef.connect(context);
-  
+
+  var password = Binding(
+    context,
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+    widget.model.password = password,
+  );
   return Column(
     children: [
       const Text('ModelBinding example for ModelStatelessWidget.',
@@ -175,7 +191,7 @@ Widget build(BuildContext context) {
       const Text('轻便的MVVM双向绑定的框架',
           style: TextStyle(fontSize: 16, color: Colors.black38)),
       const SizedBox(height: 30),
-      /// 捆绑TextField
+      /// binding TextField
       BindingTextField(
         username, /// 传入binding
         decoration: const InputDecoration(
@@ -186,12 +202,24 @@ Widget build(BuildContext context) {
             color: Colors.indigo, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 20),
+      /// binding TextField
+      BindingTextField(
+        password, /// 传入binding
+        decoration: const InputDecoration(
+          labelText: '密码',
+          hintText: '请输入密码',
+        ),
+        style: const TextStyle(
+            color: Colors.indigo, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 20),
     ],
     const SizedBox(height: 30),
     ElevatedButton(
       onPressed: () async {
-        /// 写入数据, 以产生页面刷新
+        /// write data, to refresh view
         username.value = '来自指定值的修改';
+        password.value = '来自指定值的修改';
       },
       style: const ButtonStyle(
         backgroundColor:
@@ -201,16 +229,16 @@ Widget build(BuildContext context) {
       ),
       child: const Text('更改当前值'),
     ),
-    const SizedBox(height: 30), 
+    const SizedBox(height: 30),
     Container(
-      width: double.infinity, 
-      padding: const EdgeInsets.symmetric(
-          vertical: 4, horizontal: 10), 
-      color: Colors.blueGrey,
-      /// 绑定值
-      child: Text(
-        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
-      )),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+            vertical: 4, horizontal: 10),
+        color: Colors.blueGrey,
+        /// binding value
+        child: Text(
+          'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
+        )),
   );
 }
 ```

@@ -3,19 +3,27 @@ import 'package:flutter/cupertino.dart';
 import 'model_change_notifier.dart';
 import 'model_provider.dart';
 
-
-
 class Binding<P extends ShouldNotifyDependents, T> extends ChangeNotifier {
   final BuildContext _context;
   final Ref<P, T> _ref;
 
   late final P _provider;
 
-  Binding(this._context, this._ref) {
+  Binding.ref(this._context, this._ref) {
     assert(_context.owner?.debugBuilding ?? _context.debugDoingBuild,
         'new Binding can only run during the method of build() calls.');
     _provider = _ref.findProvider(_context);
   }
+
+  Binding(
+    this._context, {
+    required T Function(P) getter,
+    required void Function(P, T) setter,
+  }) : _ref = P is ModelProviderState
+            ? StateRef(getter: getter, setter: setter)
+            : P is ModelProviderWidget
+                ? WidgetRef(getter: getter, setter: setter)
+                : throw AssertionError('can not support $P type.');
 
   T bindTo() {
     var newValue = value;
@@ -48,7 +56,7 @@ abstract class Ref<P extends ShouldNotifyDependents, T> {
   Binding<P, T> connect(BuildContext context) {
     assert(context.owner?.debugBuilding ?? context.debugDoingBuild,
         'connect() can only run during the method of build() calls.');
-    return Binding(context, this);
+    return Binding.ref(context, this);
   }
 
   P findProvider(BuildContext context);

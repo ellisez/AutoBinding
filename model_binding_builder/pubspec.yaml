@@ -1,5 +1,5 @@
 name: model_binding_builder
-description: ModelBinding is a Widget data src.binding framework implemented using MapModel, and its biggest advantage is that modifying data can automatically refresh corresponding Widgets.
+description: Deprecated, see ModelBinding v2.
 version: 2.0.0
 homepage: 'https://github.com/ellisez/ModelBinding'
 topics:

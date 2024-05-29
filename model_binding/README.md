@@ -156,6 +156,16 @@ Using the reference connection() to connect to the context can obtain a binding 
 >
 > The context connected by connect() should adhere to a smaller scope as much as possible, The change in context is the refresh range.
 
+### Direct connection
+```dart
+var password = Binding(
+  context,
+  getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+  setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+  widget.model.password = password,
+);
+```
+
 ### binding views
 
 Fill a WidgetTree with binding
@@ -163,7 +173,13 @@ Fill a WidgetTree with binding
 Widget build(BuildContext context) {
   /// connecting context
   var username = usernameRef.connect(context);
-  
+
+  var password = Binding(
+    context,
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+    widget.model.password = password,
+  );
   return Column(
     children: [
       const Text('ModelBinding example for ModelStatelessWidget.',
@@ -186,12 +202,24 @@ Widget build(BuildContext context) {
             color: Colors.indigo, fontWeight: FontWeight.bold),
       ),
       const SizedBox(height: 20),
+      /// binding TextField
+      BindingTextField(
+        password, /// 传入binding
+        decoration: const InputDecoration(
+          labelText: '密码',
+          hintText: '请输入密码',
+        ),
+        style: const TextStyle(
+            color: Colors.indigo, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 20),
     ],
     const SizedBox(height: 30),
     ElevatedButton(
       onPressed: () async {
         /// write data, to refresh view
         username.value = '来自指定值的修改';
+        password.value = '来自指定值的修改';
       },
       style: const ButtonStyle(
         backgroundColor:
@@ -274,7 +302,7 @@ The performance of refreshing depends on the refresh range. The smaller the rang
 >
 >From this perspective, the cost of renovation is still very high
 >
->Our core idea in designing ModelBinding is "borrowing", which means directly modifying the existing closest page
+>Our core idea in designing ModelBinding is "The principle of proximity", which means directly modifying the existing closest page
 >
 >Firstly, if there is already a page with very complete data, inherit a specific 'ModelProviderState' or 'ModelProviderWidget' from that page, mainly depending on whether it is stateful or stateless
 >

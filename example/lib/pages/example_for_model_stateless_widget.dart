@@ -24,19 +24,18 @@ class CallModelStatelessWidget extends StatelessWidget {
         widget.model.username = username,
   );
 
-  final passwordRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
-    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
-    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-        widget.model.password = password,
-  );
-
   @override
   Widget build(BuildContext context) {
     var username = usernameRef.connect(context);
 
     // username.bindTo();
 
-    var password = passwordRef.connect(context);
+    var password = Binding(
+      context,
+      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+          widget.model.password = password,
+    );
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -127,7 +126,12 @@ class CallModelStatelessWidget extends StatelessWidget {
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
                   var username = usernameRef.connect(subContext);
-                  var password = passwordRef.connect(subContext);
+                  var password = Binding(
+                    subContext,
+                    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+                    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+                    widget.model.password = password,
+                  );
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
