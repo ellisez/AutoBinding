@@ -409,4 +409,4 @@ Widget build(BuildContext context) {
 <h4>If you think our framework is good, like/email for communication.</h4>
 <ellise@qq.com>
 
-[AutoBinding](https://pub.flutter-io.cn/packages/model_binding)
+[AutoBinding](https://pub.flutter-io.cn/packages/auto_binding)

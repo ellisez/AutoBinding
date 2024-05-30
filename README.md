@@ -1,10 +1,10 @@
-# DataBinding v2
+# AutoBinding v2
 
-[`en`](https://github.com/ellisez/DataBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/DataBinding/blob/master/README-ZH_CN.md)
+[`en`](https://github.com/ellisez/AutoBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/AutoBinding/blob/master/README-ZH_CN.md)
 
-DataBinding is a lightweight MVVM bidirectional binding state management framework for data sharing and synchronization.
+AutoBinding is a lightweight MVVM bidirectional binding state management framework for data sharing and synchronization.
 
-DataBinding v2 adopts a new responsive programming approach, inspired by Vue and React, The new version of v2 allows for
+AutoBinding v2 adopts a new responsive programming approach, inspired by Vue and React, The new version of v2 allows for
 the use of existing widgets and build() extensions, which are a regular widget and build() that were originally non
 bidirectional, without the need to refactor a large number of WidgetTree hierarchical relationships and smoothly
 establish binding relationships.
@@ -20,15 +20,7 @@ developers.
 ## Setup
 
 ```shell
-flutter pub add data_binding
-```
-
-or
-
-```yaml
-dependencies:
-  model_binding: any
-  ...
+flutter pub add auto_binding
 ```
 
 ## Data provider
@@ -235,7 +227,7 @@ Widget build(BuildContext context) {
   );
   return Column(
     children: [
-      const Text('DataBinding example for ModelStatelessWidget.',
+      const Text('AutoBinding example for ModelStatelessWidget.',
           style: TextStyle(
               fontSize: 36,
               color: Colors.deepOrange,
@@ -311,7 +303,7 @@ Widget build(BuildContext context) {
 > `BindingTextField` also provides `valueToString` and `stringToValue` for more formatted input and output. For more
 > bundling methods, please refer to the [Bind Control section]().
 
-## DataBinding advantages
+## AutoBinding advantages
 
 * Field level comparison: More precise triggering, smaller view refresh range, and higher performance.
 
@@ -384,13 +376,13 @@ Widget build(BuildContext context) {
 > to invoke them But if multiple data changes are not in the same place, you actually don't know the last refresh call So
 > it's refreshing every time, but it's very inefficient
 
-> Let's take a look at how DataBinding reduces renovation costs?
+> Let's take a look at how AutoBinding reduces renovation costs?
 >
->1. Firstly, the data provider of DataBinding is designed to be just a regular data object There is no need for a
+>1. Firstly, the data provider of AutoBinding is designed to be just a regular data object There is no need for a
 > ChangNotify (provider's solution) with triggering capability, nor does it require additional inheritance from
 > GetxController (GetX's solution)
 >
->The data provider for DataBinding only needs to be a State or StatelessWidget, and from this point on, the Widget where
+>The data provider for AutoBinding only needs to be a State or StatelessWidget, and from this point on, the Widget where
 > the original data owner is located can be directly used for data sharing;
 >
 >2. Secondly, we oppose selecting functions with high page relevance as data providers simply because controlling refresh
@@ -402,14 +394,14 @@ Widget build(BuildContext context) {
 >Due to field level dependencies, delayed/asynchronous scenes are essentially preserved Since the site has been
 > preserved, there is no need to maintain additional status So just keep the function calls as they are
 >
->3. Finally, we need to create a series of field level Ref references and Binding binding objects, and replace all local
+>Finally, we need to create a series of field level Ref references and Binding binding objects, and replace all local
 > values with values from the Binding object
 >
 >From the perspective of local pages, Binding is like downloading a copy of shared data for local use
 >
 >After completing the above steps, status management can start working, isn't it very simple?
 
-> Subsequent maintenance of DataBinding setup:
+> Subsequent maintenance of AutoBinding setup:
 > * Consider selecting functions with high reusability almost as they are from data providers, only considering
 > reusability;
 > * Consider migrating local fields to data providers, only considering reusability;
@@ -417,4 +409,4 @@ Widget build(BuildContext context) {
 <h4>If you think our framework is good, like/email for communication.</h4>
 <ellise@qq.com>
 
-[DataBinding](https://pub.flutter-io.cn/packages/model_binding)
+[AutoBinding](https://pub.flutter-io.cn/packages/auto_binding)

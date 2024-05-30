@@ -1,11 +1,11 @@
 
-# DataBinding v2
+# AutoBinding v2
 
-[`en`](https://github.com/ellisez/DataBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/DataBinding/blob/master/README-ZH_CN.md)
+[`en`](https://github.com/ellisez/AutoBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/AutoBinding/blob/master/README-ZH_CN.md)
 
-DataBinding是一个轻便的MVVM双向绑定的状态管理框架, 以达到数据共享与同步。
+AutoBinding是一个轻便的MVVM双向绑定的状态管理框架, 以达到数据共享与同步。
 
-DataBinding v2采用了全新的响应式编程方式，受到vue与react的启发，v2新版本允许利用原本已有的widget和build()扩展即可，也就是一个原本非双向绑定的普通Widget和build(), 无需重构大量WidgetTree层级关系，很丝滑的建立绑定关系。
+AutoBinding v2采用了全新的响应式编程方式，受到vue与react的启发，v2新版本允许利用原本已有的widget和build()扩展即可，也就是一个原本非双向绑定的普通Widget和build(), 无需重构大量WidgetTree层级关系，很丝滑的建立绑定关系。
 
 与v1旧版本相比，数据提供方不再需要强制建立模型类用于绑定，数据调用方也无需强制继承特定的State和StatelessWidget，动态绑定也无手动进行释放；
 
@@ -14,15 +14,7 @@ v2版本总体设计原则是将数据提供方的数据结构最大程度的留
 ## Setup
 
 ```shell
-flutter pub add data_binding
-```
-
-or
-
-```yaml
-dependencies:
-  model_binding: any
-  ...
+flutter pub add auto_binding
 ```
 
 ## 数据提供
@@ -194,7 +186,7 @@ Widget build(BuildContext context) {
   );
   return Column(
     children: [
-      const Text('DataBinding example for ModelStatelessWidget.',
+      const Text('AutoBinding example for ModelStatelessWidget.',
           style: TextStyle(
               fontSize: 36,
               color: Colors.deepOrange,
@@ -260,7 +252,7 @@ Widget build(BuildContext context) {
 > 
 > `BindingTextField`还提供了`valueToString`与`stringToValue`用于更多的格式化输入输出, 更多捆绑方式请参见[绑定控件篇]()
 
-## DataBinding优势
+## AutoBinding优势
 
 * 字段级的比较：触发更精准，视图刷新范围更小，同时性能也更高。
 
@@ -307,11 +299,11 @@ Widget build(BuildContext context) {
 
 > 传统的状态管理, 提供的是手动调用更新, 而何时调用则由开发者自行判断. 但多数据改变如果不在同一处, 实际你是不知道最后一次调用刷新的. 那么就是每次都刷新, 但是会很低效.
 
-> 下面我们来看看DataBinding是怎么降低改造成本的?
+> 下面我们来看看AutoBinding是怎么降低改造成本的?
 >
-> 1. 首先, DataBinding的数据提供者被设计为仅仅是一个普通的数据对象. 既不需要具有触发能力的ChangNotifier (Provider的方案), 也不需要额外继承GetxController (GetX的方案).
+> 1. 首先, AutoBinding的数据提供者被设计为仅仅是一个普通的数据对象. 既不需要具有触发能力的ChangNotifier (Provider的方案), 也不需要额外继承GetxController (GetX的方案).
 > 
-> DataBinding的数据提供者只需要是个State或StatelessWidget即可, 从这个点出发原数据拥有者所在的Widget就可以直接拿来改成数据共享;
+> AutoBinding的数据提供者只需要是个State或StatelessWidget即可, 从这个点出发原数据拥有者所在的Widget就可以直接拿来改成数据共享;
 >
 > 2. 其次, 我们反对将页面相关度大的函数抽到, 数据提供者, 仅仅只是因为控制刷新在数据提供者会减少次数.
 >
@@ -319,17 +311,17 @@ Widget build(BuildContext context) {
 >
 > 也是由于字段级的依赖关系, 本质上延时/异步的现场都是被保留下来的. 既然现场被保留了, 也就不需要维护额外的状态. 所以函数调用仍保持原样即可.
 >
-> 3. 最后, 我们需要创建一系列字段级的Ref引用, 以及Binding绑定对象, 并且把原先从本地值全部换成从Binding对象里取值.
+> 最后, 我们需要创建一系列字段级的Ref引用, 以及Binding绑定对象, 并且把原先从本地值全部换成从Binding对象里取值.
 >
 > 从本地页面的角度, Binding就像是把共享数据下载一份到本地使用一样.
 > 
 > 完成上述步骤, 状态管理就可以工作起来了, 是不是很简单?
 
-> DataBinding搭建的后续维护: 
+> AutoBinding搭建的后续维护: 
 > * 可考虑在把复用度高的函数, 几乎原样的抽到数据提供者, 只需从复用度考虑;
 > * 可考虑本地字段迁向数据提供者, 只需从复用度考虑;
 
 <h4>如果觉得我们这个框架不错, 欢迎点赞/邮件进行交流.</h4>
 <ellise@qq.com>
 
-[DataBinding](https://pub.flutter-io.cn/packages/model_binding)
+[AutoBinding](https://pub.flutter-io.cn/packages/auto_binding)
