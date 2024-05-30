@@ -1,7 +1,7 @@
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
-import 'package:model_binding/model_binding.dart';
-import 'package:model_binding/widget/text_field.dart';
+import 'package:data_binding/data_binding.dart';
+import 'package:data_binding/widget/text_field.dart';
 
 class ExampleForModelStatefulWidget extends StatefulWidget {
   const ExampleForModelStatefulWidget({Key? key}) : super(key: key);
@@ -25,13 +25,13 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
 class CallModelState extends StatelessWidget {
   CallModelState({super.key});
 
-  final usernameRef = StateRef<ModelState<LoginForm>, String>(
+  final usernameRef = StateRef(
     getter: (ModelState<LoginForm> state) => state.model.username,
     setter: (ModelState<LoginForm> state, String username) =>
         state.model.username = username,
   );
 
-  final passwordRef = StateRef<ModelState<LoginForm>, String>(
+  final passwordRef = StateRef(
     getter: (ModelState<LoginForm> state) => state.model.password,
     setter: (ModelState<LoginForm> state, String password) =>
         state.model.password = password,
@@ -55,7 +55,7 @@ class CallModelState extends StatelessWidget {
           child: Form(
             child: Column(
               children: [
-                const Text('ModelBinding example for ModelStatefulWidget.',
+                const Text('DataBinding example for ModelStatefulWidget.',
                     style: TextStyle(
                         fontSize: 36,
                         color: Colors.deepOrange,
@@ -93,24 +93,23 @@ class CallModelState extends StatelessWidget {
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('打印当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
                         username.value = '来自指定值的修改';
                         password.value = '来自指定值的修改';
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('更改当前值'),
                     ),
@@ -121,9 +120,9 @@ class CallModelState extends StatelessWidget {
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('强行刷新'),
                     ),

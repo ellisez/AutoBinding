@@ -1,7 +1,9 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:js_interop';
 
-import 'model_change_notifier.dart';
-import 'model_provider.dart';
+import 'package:flutter/widgets.dart';
+
+import 'data_provider.dart';
+import 'dependent_manager.dart';
 
 class Binding<P extends ShouldNotifyDependents, T> extends ChangeNotifier {
   final BuildContext _context;
@@ -9,26 +11,17 @@ class Binding<P extends ShouldNotifyDependents, T> extends ChangeNotifier {
 
   late final P _provider;
 
-  Binding.ref(this._context, this._ref) {
+  Binding(this._context, this._ref) {
     assert(_context.owner?.debugBuilding ?? _context.debugDoingBuild,
         'new Binding can only run during the method of build() calls.');
     _provider = _ref.findProvider(_context);
+    _context.dependOnInheritedWidgetOfExactType<DependentManager>();
   }
-
-  Binding(
-    this._context, {
-    required T Function(P) getter,
-    required void Function(P, T) setter,
-  }) : _ref = P is ModelProviderState
-            ? StateRef(getter: getter, setter: setter)
-            : P is ModelProviderWidget
-                ? WidgetRef(getter: getter, setter: setter)
-                : throw AssertionError('can not support $P type.');
 
   T bindTo() {
     var newValue = value;
     if (_context.owner?.debugBuilding ?? _context.debugDoingBuild) {
-      _context.dependOnInheritedWidgetOfExactType<ModelDependentManager>(
+      _context.dependOnInheritedWidgetOfExactType<DependentManager>(
         aspect: DependentIsChange<P, T>(binder: _ref, value: newValue),
       );
     }
@@ -56,29 +49,29 @@ abstract class Ref<P extends ShouldNotifyDependents, T> {
   Binding<P, T> connect(BuildContext context) {
     assert(context.owner?.debugBuilding ?? context.debugDoingBuild,
         'connect() can only run during the method of build() calls.');
-    return Binding.ref(context, this);
+    return Binding(context, this);
   }
 
   P findProvider(BuildContext context);
 }
 
-class StateRef<P extends ModelProviderState, T> extends Ref<P, T> {
+class StateRef<P extends DataState, T> extends Ref<P, T> {
   StateRef({required super.getter, required super.setter});
 
   @override
   P findProvider(BuildContext context) {
-    var provider = ModelProviderState.of<P>(context);
+    var provider = DataState.of<P>(context);
     assert(provider != null, 'can not found $P dependOn.');
     return provider!;
   }
 }
 
-class WidgetRef<P extends ModelProviderWidget, T> extends Ref<P, T> {
+class WidgetRef<P extends DataStatelessWidget, T> extends Ref<P, T> {
   WidgetRef({required super.getter, required super.setter});
 
   @override
   P findProvider(BuildContext context) {
-    var provider = ModelProviderWidget.of<P>(context);
+    var provider = DataStatelessWidget.of<P>(context);
     assert(provider != null, 'can not found $P dependOn.');
     return provider!;
   }

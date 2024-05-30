@@ -1,7 +1,7 @@
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
-import 'package:model_binding/model_binding.dart';
-import 'package:model_binding/widget/text_field.dart';
+import 'package:data_binding/data_binding.dart';
+import 'package:data_binding/widget/text_field.dart';
 
 class ExampleForModelStatelessWidget extends StatelessWidget {
   const ExampleForModelStatelessWidget({super.key});
@@ -18,7 +18,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 class CallModelStatelessWidget extends StatelessWidget {
   CallModelStatelessWidget({super.key});
 
-  final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
+  final usernameRef = WidgetRef(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
         widget.model.username = username,
@@ -32,9 +32,12 @@ class CallModelStatelessWidget extends StatelessWidget {
 
     var password = Binding(
       context,
-      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
-      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-          widget.model.password = password,
+      WidgetRef(
+        getter: (ModelStatelessWidget<LoginForm> widget) =>
+            widget.model.password,
+        setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+            widget.model.password = password,
+      ),
     );
     debugPrint('父视图发生刷新');
     return Scaffold(
@@ -47,7 +50,7 @@ class CallModelStatelessWidget extends StatelessWidget {
           child: Form(
             child: Column(
               children: [
-                const Text('ModelBinding example for ModelStatelessWidget.',
+                const Text('DataBinding example for ModelStatelessWidget.',
                     style: TextStyle(
                         fontSize: 36,
                         color: Colors.deepOrange,
@@ -85,38 +88,36 @@ class CallModelStatelessWidget extends StatelessWidget {
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('打印当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
                         username.value = '来自指定值的修改';
                         password.value = '来自指定值的修改';
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('更改当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
-                        ModelProviderWidget.of(context)?.notifyDependents();
+                        DataStatelessWidget.of(context)?.notifyDependents();
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('强行刷新'),
                     ),
@@ -128,9 +129,13 @@ class CallModelStatelessWidget extends StatelessWidget {
                   var username = usernameRef.connect(subContext);
                   var password = Binding(
                     subContext,
-                    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
-                    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-                    widget.model.password = password,
+                    WidgetRef(
+                      getter: (ModelStatelessWidget<LoginForm> widget) =>
+                          widget.model.password,
+                      setter: (ModelStatelessWidget<LoginForm> widget,
+                              String password) =>
+                          widget.model.password = password,
+                    ),
                   );
                   return Container(
                       width: double.infinity,

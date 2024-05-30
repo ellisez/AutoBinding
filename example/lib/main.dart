@@ -1,5 +1,5 @@
-import 'package:example/pages/example_for_model_provider_state.dart';
-import 'package:example/pages/example_for_model_provider_widget.dart';
+import 'package:example/pages/example_for_data_stateful_widget.dart';
+import 'package:example/pages/example_for_data_stateless_widget.dart';
 import 'package:example/pages/example_for_model_stateful_widget.dart';
 import 'package:example/pages/example_for_model_stateless_widget.dart';
 
@@ -17,17 +17,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'ModelBinding Demo',
+        title: 'DataBinding Demo',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
         routes: {
-          '/': (_) => const MyHomePage(title: 'ModelBinding Demo Home Page'),
-          '/exampleForModelStatefulWidget': (_) => const ExampleForModelStatefulWidget(),
-          '/exampleForModelStatelessWidget': (_) => const ExampleForModelStatelessWidget(),
-          '/exampleForModelProviderState': (_) => const ExampleForModelProviderStatefulWidget(),
-          '/exampleForModelProviderWidget': (_) => ExampleForModelProviderWidget(),
+          '/': (_) => const MyHomePage(title: 'DataBinding Demo Home Page'),
+          '/ExampleForModelStatefulWidget': (_) => const ExampleForModelStatefulWidget(),
+          '/ExampleForModelStatelessWidget': (_) => const ExampleForModelStatelessWidget(),
+          '/ExampleForDataStatefulWidget': (_) => ExampleForDataStatefulWidget(),
+          '/ExampleForDataStatelessWidget': (_) => ExampleForDataStatelessWidget(),
         },
         initialRoute: '/',
     );
@@ -60,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/exampleForModelStatefulWidget');
+                  Navigator.of(context).pushNamed('/ExampleForModelStatefulWidget');
                 },
                 child: const Text('Example for ModelStatefulWidget')),
           ),
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/exampleForModelStatelessWidget');
+                  Navigator.of(context).pushNamed('/ExampleForModelStatelessWidget');
                 },
                 child: const Text('Example for ModelStatelessWidget')),
           ),
@@ -78,18 +78,18 @@ class _MyHomePageState extends State<MyHomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/exampleForModelProviderState');
+                  Navigator.of(context).pushNamed('/ExampleForDataStatefulWidget');
                 },
-                child: const Text('Example for subclass of ModelProviderState')),
+                child: const Text('Example for subclass of DataStatefulWidget')),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushNamed('/exampleForModelProviderWidget');
+                  Navigator.of(context).pushNamed('/ExampleForDataStatelessWidget');
                 },
-                child: const Text('Example for subclass of ModelProviderWidget')),
+                child: const Text('Example for subclass of DataStatelessWidget')),
           ),
         ],
       ),

@@ -3,10 +3,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'model_change_notifier.dart';
-import 'model_inject.dart';
+import 'dependent_manager.dart';
+import 'data_inject.dart';
 
-class BindingTextField<P extends ShouldNotifyDependents, T> extends StatefulWidget {
+class BindingTextField<P extends ShouldNotifyDependents, T>
+    extends StatefulWidget {
   final Binding<P, T> binding;
   final String Function(T)? valueToString;
   final T Function(String)? stringToValue;
@@ -538,7 +539,8 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
         widget.onChanged!(text);
       }
     };
-    _controller = TextEditingController(text: valueToString(widget.binding.value));
+    _controller =
+        TextEditingController(text: valueToString(widget.binding.value));
     widget.binding.addListener(_handleUpdate);
     super.initState();
   }

@@ -39,7 +39,7 @@
 - update example.
 
 ## 1.0.13
-- ModelBinding can create.
+- DataBinding can create.
 
 ## 1.0.14
 - Add BindingState.

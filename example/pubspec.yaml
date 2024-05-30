@@ -1,5 +1,5 @@
 name: example
-description: A new Flutter project.
+description: example for flutter_binding.
 
 publish_to: 'none'
 
@@ -13,8 +13,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
 #  model_binding: ^2.0.0
-  model_binding:
-    path: ../model_binding
+  data_binding:
+    path: ../data_binding
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,3 @@
-import 'package:model_binding/model_binding.dart';
 
 class LoginForm {
   String username;

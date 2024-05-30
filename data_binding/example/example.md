@@ -1,9 +1,9 @@
 
-# ModelBinding
+# DataBinding
 
-[`en`](https://github.com/ellisez/ModelBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/ModelBinding/blob/master/README-ZH_CN.md)
+[`en`](https://github.com/ellisez/DataBinding/blob/master/README.md) [`cn`](https://github.com/ellisez/DataBinding/blob/master/README-ZH_CN.md)
 
-ModelBinding是一个使用MapModel实现的Widget数据绑定框架，其最大的优点是修改数据可以自动刷新相应的Widget。
+DataBinding是一个使用MapModel实现的Widget数据绑定框架，其最大的优点是修改数据可以自动刷新相应的Widget。
 
 与传统的mvvm框架不同，它不需要建立和维护额外的绑定关系。它的核心思想是“获取即捆绑”，这更符合数据使用习惯。
 
@@ -44,11 +44,11 @@ include: package:model_binding/lints.yaml
 
 ### model
 
-provided `@Model` `@ModelBinding` annotation
+provided `@Model` `@DataBinding` annotation
 
 [@Model]() can use for Map as Model, like Entity, Vo, Dto. see [MapModel](https://pub.flutter-io.cn/packages/map_model)
 
-[@ModelBinding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
+[@DataBinding]() can use for Map to Binding flutter Widget, Implementing bidirectional binding.
 
 也就是说，修改值的界面将被部分刷新，在参考点显示值，控制输入也将更改新值并被通知。
 
@@ -106,7 +106,7 @@ Map<String?, dynamic> castMap(String property, dynamic value) {
 
 - `@Model.converts` 定义类型的转换器, 参见默认支持类型: List<String>, int, double, DateTime
 - 使用类继承的方式: _${yourClassName}Impl, 因为单继承的要求，占用的话可以考虑用mixin。
-- 使用mixin混入方式: _${yourClassName}Mixin; 必须要继承ModelBinding和它的子类。
+- 使用mixin混入方式: _${yourClassName}Mixin; 必须要继承DataBinding和它的子类。
 
 
 ### Model transformation
@@ -178,9 +178,9 @@ debugPrint(otherModel.nullableString);
 一般而言，我们允许整块数据替换，禁止非声明的数据项访问。整块替换可类比为传统的new一个模型类，禁止访问未被声明的字段类比为模型里没有定义字段。
 
 
-### use ModelBinding
+### use DataBinding
 
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/data_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/DataBinding/master/resources/data_binding.gif">
 
 example provide 3 widget binding methods:
 - `Raw Widget`: use flutter raw widget add parameter
@@ -218,7 +218,7 @@ context in Binding class, can be partially refreshed.
 
 ### Cross level call
 
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/sync_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/DataBinding/master/resources/sync_binding.gif">
 
 ```dart
 
@@ -295,7 +295,7 @@ class SubWidgetState extends State<SubWidget> {
     super.initState();
 
     /// binding sub widget
-    ModelBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
+    DataBinding.of<SyncWidgetBindingState, SuperBinding>(context)?.$bindSync(
       subBinding,
       context: context,
       fields: ['nullableString'],
@@ -334,7 +334,7 @@ class SubWidgetState extends State<SubWidget> {
 
 ### use WidgetBinding
 
-<img src="https://raw.githubusercontent.com/ellisez/ModelBinding/master/resources/widget_binding.gif">
+<img src="https://raw.githubusercontent.com/ellisez/DataBinding/master/resources/widget_binding.gif">
 
 ```dart
 @override
@@ -389,7 +389,7 @@ Widget build(BuildContext context) => Scaffold(
               setState(() {});
             },
             child: const Text('refresh outside')),
-        Text('outside refresh point：${ModelBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
+        Text('outside refresh point：${DataBinding.of<WidgetBindingState, SuperBinding>(context)?.nullableString ?? ''}'),
       ],
     ),
   ),
@@ -409,9 +409,9 @@ Widget build(BuildContext context) => Scaffold(
 - `BindingSupport` 可以mixin快速建立绑定模型. `mixin`
 - `BindingState` 可以刷新并且绑定数据 `class`
 - `BindingSupport.of(context)` 获得被混入BindingSupport的State实例.
-- `ModelBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
+- `DataBinding.of(context)` 获得绑定的model实例. 等同于`BindingSupport.of(context).bind`
 
-Widget Tree跨层时使用ModelBinding.of(context)能够快速的获取模型数据。
+Widget Tree跨层时使用DataBinding.of(context)能够快速的获取模型数据。
 ## Generate
 
 ```shell
@@ -423,26 +423,26 @@ or
 dart run build_runner build
 ```
 
-## ModelBinding vs Provider vs Get_it
+## DataBinding vs Provider vs Get_it
 
 Provider框架提供了优秀的Consumer实用程序类，但不幸的是，数据绑定需要创建大量的Provider子类，如ChangeNotificationerProvider、ListenableProvider、ValueListenableProvider和StreamProvider等。这种机制被称为状态管理，尽管Vue和React中有类似的概念，Flutter完全没有必要建立这样的机制，因为Flutter有一个非常完整的上下文。
 
 我认为Provider框架之所以这么设计，主要原因是缺乏数据绑定层，所以你会发现在使用Provider时，页面写得很快，但你需要写如何同步页面外的数据字段，就是非常复杂和痛苦。
 
-ModelBinding认为，在编写Widget Tree时，应该清楚地知道页面的结构、局部刷新的范围以及它们绑定到的数据。这就像是一种穷举所有结果的声明式编码，而不是隐晦的调用addListener（尽管ModelBinding也提供了一种添加监听器的方法，但不推荐使用）；声明式编程也符合大多数人的写作习惯；
+DataBinding认为，在编写Widget Tree时，应该清楚地知道页面的结构、局部刷新的范围以及它们绑定到的数据。这就像是一种穷举所有结果的声明式编码，而不是隐晦的调用addListener（尽管DataBinding也提供了一种添加监听器的方法，但不推荐使用）；声明式编程也符合大多数人的写作习惯；
 
-此外，ModelBinding认为，在多个数据项之间建立同步远不如一同份数据在多处引用。要做到这一点，就要归功于ModelBinding对MapModel框架的使用，其特点是将Map用作模型。转换模型只意味着同一个Map的可见性不同（简单理解为一推getter/setter不同），本质仍然是同一个实例。
+此外，DataBinding认为，在多个数据项之间建立同步远不如一同份数据在多处引用。要做到这一点，就要归功于DataBinding对MapModel框架的使用，其特点是将Map用作模型。转换模型只意味着同一个Map的可见性不同（简单理解为一推getter/setter不同），本质仍然是同一个实例。
 
-此外，ModelBinding绑定层还提供了一个更用户友好的工具箱，例如TextFieldBinding，它可以用作控件输入和输出，以双向绑定数据项。
+此外，DataBinding绑定层还提供了一个更用户友好的工具箱，例如TextFieldBinding，它可以用作控件输入和输出，以双向绑定数据项。
 
 与GetIT框架相比，首先，GetIT是一个数据的包装类。在使用它时，原始数据需要封装在GetIT中，这与vue3的ref类似，但不能像vue3那样用作递归代理，这会让开发人员封装子项。它也可以打包一些Widget，但这也是开发人员不断打包和解包工作负载增加的结果。
 
-ModelBinding认为，将细节和工作负载交给开发人员并不是一个非常明智的选择。也许它可以在底层细节中实现，但没有必要暴露出来。这并不优雅，也不符合大多数人的写作习惯。这就像1+1。尽可能地，它不应该是a.add(b)。它应该考虑加号的运算符重载，并保持1+1的写入方法；
+DataBinding认为，将细节和工作负载交给开发人员并不是一个非常明智的选择。也许它可以在底层细节中实现，但没有必要暴露出来。这并不优雅，也不符合大多数人的写作习惯。这就像1+1。尽可能地，它不应该是a.add(b)。它应该考虑加号的运算符重载，并保持1+1的写入方法；
 
-事实上，底层ModelBinding的许多细节也参考了GetIT实现，但我们提供的API更加用户友好。此外，GetIT还需要像Provider一样建立额外的绑定关系。
+事实上，底层DataBinding的许多细节也参考了GetIT实现，但我们提供的API更加用户友好。此外，GetIT还需要像Provider一样建立额外的绑定关系。
 
 还是那句话，无论同步数据的机制多健全，永远没有只维护一份共用的数据来的好；
 
 
 [MapModel](https://pub.flutter-io.cn/packages/map_model)
-[ModelBinding](https://pub.flutter-io.cn/packages/model_binding)
+[DataBinding](https://pub.flutter-io.cn/packages/model_binding)

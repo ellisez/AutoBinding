@@ -1,43 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:model_binding/model_binding.dart';
-import 'package:model_binding/widget/text_field.dart';
+import 'package:data_binding/data_binding.dart';
+import 'package:data_binding/widget/text_field.dart';
 
-class ExampleForModelProviderStatefulWidget extends StatefulWidget {
-  const ExampleForModelProviderStatefulWidget({Key? key}) : super(key: key);
+class ExampleForDataStatefulWidget extends DataStatefulWidget {
+  ExampleForDataStatefulWidget({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return ExampleForModelProviderState();
-  }
+  ExampleForDataState createState() => ExampleForDataState();
 }
 
-class ExampleForModelProviderState
-    extends ModelProviderState<ExampleForModelProviderStatefulWidget> {
+class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
   String username = '';
   String password = '';
 
   @override
-  Widget builder(BuildContext context) => const CallModelProvider();
+  Widget builder(BuildContext context) => const CallDataStatefulWidget();
 }
 
-class CallModelProvider extends StatefulWidget {
-  const CallModelProvider({super.key});
+class CallDataStatefulWidget extends StatefulWidget {
+  const CallDataStatefulWidget({super.key});
 
   @override
-  State<StatefulWidget> createState() => CallModelProviderState();
+  State<StatefulWidget> createState() => CallDataState();
 }
 
-class CallModelProviderState extends State<CallModelProvider> {
-
-  var usernameRef = StateRef<ExampleForModelProviderState, String>(
-    getter: (ExampleForModelProviderState state) => state.username,
-    setter: (ExampleForModelProviderState state, String username) =>
+class CallDataState extends State<CallDataStatefulWidget> {
+  var usernameRef = StateRef(
+    getter: (ExampleForDataState state) => state.username,
+    setter: (ExampleForDataState state, String username) =>
         state.username = username,
   );
 
-  var passwordRef = StateRef<ExampleForModelProviderState, String>(
-    getter: (ExampleForModelProviderState state) => state.password,
-    setter: (ExampleForModelProviderState state, String password) =>
+  var passwordRef = StateRef(
+    getter: (ExampleForDataState state) => state.password,
+    setter: (ExampleForDataState state, String password) =>
         state.password = password,
   );
 
@@ -60,7 +56,7 @@ class CallModelProviderState extends State<CallModelProvider> {
             child: Column(
               children: [
                 const Text(
-                    'ModelBinding example for subclass of ModelProviderState.',
+                    'DataBinding example for subclass of DataStatefulWidget.',
                     style: TextStyle(
                         fontSize: 36,
                         color: Colors.deepOrange,
@@ -98,38 +94,37 @@ class CallModelProviderState extends State<CallModelProvider> {
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('打印当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
                         username.value = '来自指定值的修改';
                         password.value = '来自指定值的修改';
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('更改当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
-                        setState(() {});
+                        DataState.of<ExampleForDataState>(context)
+                            ?.notifyDependents();
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('强行刷新'),
                     ),

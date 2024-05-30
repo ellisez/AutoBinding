@@ -1,29 +1,29 @@
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
-import 'package:model_binding/model_binding.dart';
-import 'package:model_binding/widget/text_field.dart';
+import 'package:data_binding/data_binding.dart';
+import 'package:data_binding/widget/text_field.dart';
 
-class ExampleForModelProviderWidget extends ModelProviderWidget {
+class ExampleForDataStatelessWidget extends DataStatelessWidget {
   final loginForm = LoginForm('', '');
 
-  ExampleForModelProviderWidget()
-      : super(child: CallModelProviderWidget());
+  ExampleForDataStatelessWidget()
+      : super(child: CallDataStatelessWidget());
 }
 
-class CallModelProviderWidget extends StatelessWidget {
-  CallModelProviderWidget({super.key});
+class CallDataStatelessWidget extends StatelessWidget {
+  CallDataStatelessWidget({super.key});
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final usernameRef = WidgetRef<ExampleForModelProviderWidget, String>(
-    getter: (ExampleForModelProviderWidget widget) => widget.loginForm.username,
-    setter: (ExampleForModelProviderWidget widget, String username) =>
+  final usernameRef = WidgetRef(
+    getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.username,
+    setter: (ExampleForDataStatelessWidget widget, String username) =>
         widget.loginForm.username = username,
   );
 
-  final passwordRef = WidgetRef<ExampleForModelProviderWidget, String>(
-    getter: (ExampleForModelProviderWidget widget) => widget.loginForm.password,
-    setter: (ExampleForModelProviderWidget widget, String password) =>
+  final passwordRef = WidgetRef(
+    getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.password,
+    setter: (ExampleForDataStatelessWidget widget, String password) =>
         widget.loginForm.password = password,
   );
 
@@ -46,7 +46,7 @@ class CallModelProviderWidget extends StatelessWidget {
             key: _formKey,
             child: Column(
               children: [
-                const Text('ModelBinding example for ModelStatelessWidget.',
+                const Text('DataBinding example for DataStatelessWidget.',
                     style: TextStyle(
                         fontSize: 36,
                         color: Colors.deepOrange,
@@ -84,38 +84,36 @@ class CallModelProviderWidget extends StatelessWidget {
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('打印当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
                         username.value = '来自指定值的修改';
                         password.value = '来自指定值的修改';
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('更改当前值'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        // 步骤六:
-                        ModelProviderWidget.of(context)?.notifyDependents();
+                        DataStatelessWidget.of(context)?.notifyDependents();
                       },
                       style: const ButtonStyle(
                         backgroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.lightBlue),
+                            WidgetStatePropertyAll<Color>(Colors.lightBlue),
                         foregroundColor:
-                            MaterialStatePropertyAll<Color>(Colors.white),
+                            WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       child: const Text('强行刷新'),
                     ),
