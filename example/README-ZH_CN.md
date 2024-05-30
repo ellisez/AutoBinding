@@ -84,7 +84,6 @@ class ExampleForDataState
 }
 ```
 > 同样要求数据提供与调用分开定义(范例中是直接下级, 但实际调用处通常是跨很多层级的), 
-> DataState<ExampleForModelProviderStatefulWidget>中ExampleForModelProviderStatefulWidget只需要是个普通的StateStatefulWidget即可.
 
 > `DataState`与`ModelStatefulWidget`和`ModelStatelessWidget`相比提供了自由定义共享数据的代码区域.
 
@@ -324,4 +323,4 @@ Widget build(BuildContext context) {
 <h4>如果觉得我们这个框架不错, 欢迎点赞/邮件进行交流.</h4>
 <ellise@qq.com>
 
-[AutoBinding](https://pub.flutter-io.cn/packages/auto_binding)
+[AutoBinding](https://pub.dev/packages/auto_binding)

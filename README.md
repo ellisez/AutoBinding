@@ -103,8 +103,6 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
 
 > Similarly, it is required that data provision be defined separately from invocation (in the example, it is a direct
 > subordinate, but the actual invocation is usually across many levels),
-> In DataState<ExampleForModelProviderStatefulWidget>, the ExampleForModelProviderStatefulWidget only needs to be a
-> regular StatefulWidget.
 
 > `DataState` provides a code area for freely defining shared data compared to `ModelStatefulWidget`
 > and `ModelStatelessWidget`.
