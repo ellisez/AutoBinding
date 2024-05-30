@@ -20,7 +20,7 @@ developers.
 ## Setup
 
 ```shell
-flutter pub add model_binding
+flutter pub add data_binding
 ```
 
 or

@@ -14,7 +14,7 @@ v2版本总体设计原则是将数据提供方的数据结构最大程度的留
 ## Setup
 
 ```shell
-flutter pub add model_binding
+flutter pub add data_binding
 ```
 
 or
