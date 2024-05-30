@@ -55,3 +55,12 @@
 
 ## 1.0.18
 - Update example.
+
+## 2.0.0
+- publish v2.0.
+
+## 2.0.1
+- Update example.
+
+## 2.0.2
+- Update README.md.

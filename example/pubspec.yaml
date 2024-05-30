@@ -12,15 +12,12 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-#  model_binding: ^2.0.0
-  data_binding:
-    path: ../data_binding
+  auto_binding: ^2.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-  build_runner: ^2.4.4
 
 flutter:
   uses-material-design: true

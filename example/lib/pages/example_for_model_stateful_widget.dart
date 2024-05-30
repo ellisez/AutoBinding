@@ -1,7 +1,7 @@
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
-import 'package:data_binding/data_binding.dart';
-import 'package:data_binding/widget/text_field.dart';
+import 'package:auto_binding/auto_binding.dart';
+import 'package:auto_binding/widget/text_field.dart';
 
 class ExampleForModelStatefulWidget extends StatefulWidget {
   const ExampleForModelStatefulWidget({Key? key}) : super(key: key);

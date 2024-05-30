@@ -1,4 +1,3 @@
-include: package:model_binding/lints.yaml
 
 linter:
   rules:
