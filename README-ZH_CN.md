@@ -324,4 +324,4 @@ Widget build(BuildContext context) {
 <h4>如果觉得我们这个框架不错, 欢迎点赞/邮件进行交流.</h4>
 <ellise@qq.com>
 
-[AutoBinding](https://pub.flutter-io.cn/packages/auto_binding)
+[AutoBinding](https://pub.dev/packages/auto_binding)
