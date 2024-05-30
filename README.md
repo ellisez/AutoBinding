@@ -402,7 +402,7 @@ Widget build(BuildContext context) {
 >Due to field level dependencies, delayed/asynchronous scenes are essentially preserved Since the site has been
 > preserved, there is no need to maintain additional status So just keep the function calls as they are
 >
->Finally, we need to create a series of field level Ref references and Binding binding objects, and replace all local
+>3. Finally, we need to create a series of field level Ref references and Binding binding objects, and replace all local
 > values with values from the Binding object
 >
 >From the perspective of local pages, Binding is like downloading a copy of shared data for local use
