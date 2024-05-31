@@ -166,7 +166,7 @@ final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
 
 > Stateless corresponds to the data provided by `ModelStatelessWidget` and `DataStatelessWidget`;
 
-> State corresponds to the data provided by `ModelStatelessWidget` and `DataState`;
+> State corresponds to the data provided by `ModelState` and `DataState`;
 
 > <font color=yellow>Note: Referencing variables should be created outside of the build() function, rather than always
 > creating new ones following page refresh;</font>

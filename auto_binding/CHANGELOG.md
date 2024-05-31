@@ -73,3 +73,6 @@
 
 ## 2.0.5
 - Update README.md.
+
+## 2.0.6
+- Update README.md.

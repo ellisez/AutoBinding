@@ -136,7 +136,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 
 > 无状态对应的是`ModelStatelessWidget`与`DataStatelessWidget`所提供的数据;
 
-> 有状态对应的是`ModelStatelessWidget`与`DataState`所提供的数据;
+> 有状态对应的是`ModelState`与`DataState`所提供的数据;
 
 > <font color=yellow>注意: 引用变量应当创建在build()函数之外, 而不是跟随着页面刷新总是创建新的;</font>
 ### 连接上下文
