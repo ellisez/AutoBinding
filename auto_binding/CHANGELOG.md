@@ -76,3 +76,9 @@
 
 ## 2.0.6
 - Update README.md.
+
+## 2.0.7
+- Support peer use.
+
+## 2.0.8
+- Support peer use.

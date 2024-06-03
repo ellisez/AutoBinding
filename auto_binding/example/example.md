@@ -37,8 +37,6 @@ flutter pub add auto_binding
 > 范例中ModelStatefulWidget的模型数据类型为LoginForm, 由LoginForm提供;
 > child是调用的Widget;
 
-> 注意: `ModelStatefulWidget`提供数据应当与调用数据不在同一处定义, 如果不跨层数据提供方与调用方互相是可见的, 也就失去了数据共享与状态同步的意义了.
-
 ### ModelStatelessWidget
 
 `ModelStatelessWidget`与`ModelStatefulWidget`相似也提供的`model`参数, 直接作为WidgetTree使用.
@@ -83,7 +81,6 @@ class ExampleForDataState
   Widget builder(BuildContext context) => const CallDataStatefulWidget();
 }
 ```
-> 同样要求数据提供与调用分开定义(范例中是直接下级, 但实际调用处通常是跨很多层级的),
 
 > `DataState`与`ModelStatefulWidget`和`ModelStatelessWidget`相比提供了自由定义共享数据的代码区域.
 
@@ -104,148 +101,152 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
       : super(child: CallDataStatelessWidget());
 }
 ```
-> 用法与`DataState`相似, 同样也要求提供方与调用方分别编写,
->
-> 与`DataState`比较, 同样也是无状态刷新丢失数据,与有状态刷新保留数据的区别.
+> 用法与`DataState`相似, 也可以自由的定义共享数据.
 
 ## 数据调用
 
-数据调用分为三个步骤: 建立引用, 连接上下文, 捆绑视图;
+数据调用分为三个步骤: 创建构造器, 绑定引用, 捆绑视图;
 
-### 建立引用
-引用可分为有状态引用与无状态引用
+### 创建构造器
 
-有状态使用: `StateRef`类完成引用实例的创建
-```dart
-  final usernameRef = StateRef<ModelState<LoginForm>, String>(
-    getter: (ModelState<LoginForm> state) => state.model.username,
-    setter: (ModelState<LoginForm> state, String username) =>
-        state.model.username = username,
-  );
-```
+通过context来创建构造器
 
-无状态使用: `WidgetRef`类完成引用实例的创建
-```dart
-  final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
-    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
-    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
-        widget.model.username = username,
-  );
-```
-> 很容易看到, 引用类型需要提供getter与setter, 另外就是数据提供方的类型.
-
-> 无状态对应的是`ModelStatelessWidget`与`DataStatelessWidget`所提供的数据;
-
-> 有状态对应的是`ModelStatelessWidget`与`DataState`所提供的数据;
-
-> <font color=yellow>注意: 引用变量应当创建在build()函数之外, 而不是跟随着页面刷新总是创建新的;</font>
-### 连接上下文
-
-使用引用connect()连接context可获得已建立绑定关系的binding实例
 ```dart
   @override
   Widget build(BuildContext context) {
-    var username = usernameRef.connect(context);
+    var builder = BindingBuilder(context);
+  }
+```
+
+> 绑定的context应当遵守范围越小越好, context即发生变化是刷新的范围.
+>
+> <font color=yellow>注意: 构造器必须在build()函数之内创建;</font>
+
+### 绑定引用
+
+两种绑定方式: 直接绑定, 引用绑定
+```dart
+  final usernameRef = Ref(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+      widget.model.username = username,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    var builder = BindingBuilder(context);
+    /// 引用绑定: 使用已定义的Ref变量
+    var username = builder.bindRef(usernameRef);
+
+    /// 直接绑定: 提供getter/setter
+    var password = builder.bind(
+      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+      widget.model.password = password,
+    );
     ...
   }
 ```
-> 连接上下文应当编写在build()范围里, 当视图刷新时就要重新进行连接, 以保证绑定总是最新的.
->
-> connect()所连接的context应当遵守范围越小越好, context即发生变化是刷新的范围.
 
-### 直接连接
-```dart
-var password = Binding(
-  context,
-  WidgetRef(
-    getter: (ModelStatelessWidget<LoginForm> widget) =>
-    widget.model.password,
-    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-    widget.model.password = password,
-  ),
-);
-```
+> 多个上下文使用时, 应考虑引用绑定的方式, 这样Ref变量可以复用
 
 ### 捆绑视图
 
 使用binding填充到某个WidgetTree上
 ```dart
-Widget build(BuildContext context) {
-  /// connecting context
-  var username = usernameRef.connect(context);
+class ExampleForModelStatelessWidget extends StatelessWidget {
+  
+  final usernameRef = Ref(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+    widget.model.username = username,
+  );
 
-  var password = Binding(
-    context,
-    WidgetRef(
-      getter: (ModelStatelessWidget<LoginForm> widget) =>
-      widget.model.password,
+  Widget build(BuildContext context) {
+    /// connecting context
+    var builder = BindingBuilder(context);
+
+    var username = builder.bindRef(usernameRef);
+
+    /// no bind
+    username.raw;
+
+    var password = builder.bind(
+      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
       setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
       widget.model.password = password,
-    ),
-  );
-  return Column(
-    children: [
-      const Text('AutoBinding example for ModelStatelessWidget.',
-          style: TextStyle(
-              fontSize: 36,
-              color: Colors.deepOrange,
-              fontWeight: FontWeight.bold)),
-      const SizedBox(height: 20),
-      const Text('轻便的MVVM双向绑定的框架',
-          style: TextStyle(fontSize: 16, color: Colors.black38)),
+    );
+    return Column(
+      children: [
+        const Text('AutoBinding example for ModelStatelessWidget.',
+            style: TextStyle(
+                fontSize: 36,
+                color: Colors.deepOrange,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+        const Text('轻便的MVVM双向绑定的框架',
+            style: TextStyle(fontSize: 16, color: Colors.black38)),
+        const SizedBox(height: 30),
+
+        /// binding TextField
+        BindingTextField(
+          username,
+
+          /// 传入binding
+          decoration: const InputDecoration(
+            labelText: '用户名',
+            hintText: '请输入用户名',
+          ),
+          style: const TextStyle(
+              color: Colors.indigo, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+
+        /// binding TextField
+        BindingTextField(
+          password,
+
+          /// 传入binding
+          decoration: const InputDecoration(
+            labelText: '密码',
+            hintText: '请输入密码',
+          ),
+          style: const TextStyle(
+              color: Colors.indigo, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+      ],
       const SizedBox(height: 30),
-      /// binding TextField
-      BindingTextField(
-        username, /// 传入binding
-        decoration: const InputDecoration(
-          labelText: '用户名',
-          hintText: '请输入用户名',
+      ElevatedButton(
+        onPressed: () async {
+          /// write data, to refresh view
+          username.value = '来自指定值的修改';
+          password.value = '来自指定值的修改';
+        },
+        style: const ButtonStyle(
+          backgroundColor:
+          MaterialStatePropertyAll<Color>(Colors.lightBlue),
+          foregroundColor:
+          MaterialStatePropertyAll<Color>(Colors.white),
         ),
-        style: const TextStyle(
-            color: Colors.indigo, fontWeight: FontWeight.bold),
+        child: const Text('更改当前值'),
       ),
-      const SizedBox(height: 20),
-      /// binding TextField
-      BindingTextField(
-        password, /// 传入binding
-        decoration: const InputDecoration(
-          labelText: '密码',
-          hintText: '请输入密码',
-        ),
-        style: const TextStyle(
-            color: Colors.indigo, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 20),
-    ],
-    const SizedBox(height: 30),
-    ElevatedButton(
-      onPressed: () async {
-        /// write data, to refresh view
-        username.value = '来自指定值的修改';
-        password.value = '来自指定值的修改';
-      },
-      style: const ButtonStyle(
-        backgroundColor:
-        MaterialStatePropertyAll<Color>(Colors.lightBlue),
-        foregroundColor:
-        MaterialStatePropertyAll<Color>(Colors.white),
-      ),
-      child: const Text('更改当前值'),
-    ),
-    const SizedBox(height: 30),
-    Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-            vertical: 4, horizontal: 10),
-        color: Colors.blueGrey,
-        /// binding value
-        child: Text(
-          'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
-        )),
-  );
+      const SizedBox(height: 30),
+      Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+              vertical: 4, horizontal: 10),
+          color: Colors.blueGrey,
+
+          /// binding value
+          child: Text(
+            'username = ${username.value}\npassword = ${password.value}',
+          )),
+    );
+  }
 }
 ```
-> 范例中通过`BindingTextField`绑定到TextField输入框, 通过bindTo()绑定值;
+> 范例中通过`BindingTextField`绑定到TextField输入框, 通过value绑定值到Text视图, raw不会产生绑定;
 >
 > 通过`username.value = '来自指定值的修改';`赋值立刻产生页面的刷新;
 >

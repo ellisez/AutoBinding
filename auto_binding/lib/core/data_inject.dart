@@ -1,4 +1,3 @@
-import 'dart:collection';
 
 import 'package:auto_binding/auto_binding.dart';
 import 'package:flutter/widgets.dart';
