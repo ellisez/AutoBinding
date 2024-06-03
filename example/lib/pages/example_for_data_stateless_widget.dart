@@ -6,34 +6,29 @@ import 'package:auto_binding/widget/text_field.dart';
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
   final loginForm = LoginForm('', '');
 
-  ExampleForDataStatelessWidget()
-      : super(child: CallDataStatelessWidget());
-}
+  ExampleForDataStatelessWidget();
 
-class CallDataStatelessWidget extends StatelessWidget {
-  CallDataStatelessWidget({super.key});
-
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  final usernameRef = WidgetRef(
+  final usernameRef = Ref(
     getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.username,
     setter: (ExampleForDataStatelessWidget widget, String username) =>
         widget.loginForm.username = username,
   );
 
-  final passwordRef = WidgetRef(
+  final passwordRef = Ref(
     getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.password,
     setter: (ExampleForDataStatelessWidget widget, String password) =>
         widget.loginForm.password = password,
   );
 
   @override
-  Widget build(BuildContext context) {
-    var username = usernameRef.connect(context);
+  Widget builder(BuildContext context) {
+    var builder = BindingBuilder(context);
+
+    var username = builder.bindRef(usernameRef);
 
     username.value;
 
-    var password = passwordRef.connect(context);
+    var password = builder.bindRef(passwordRef);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -43,7 +38,6 @@ class CallDataStatelessWidget extends StatelessWidget {
           width: 400,
           height: 600,
           child: Form(
-            key: _formKey,
             child: Column(
               children: [
                 const Text('DataBinding example for DataStatelessWidget.',
@@ -122,15 +116,30 @@ class CallDataStatelessWidget extends StatelessWidget {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var username = usernameRef.connect(subContext);
-                  var password = passwordRef.connect(subContext);
+                  var builder = BindingBuilder(subContext);
+
+                  var username = builder.bind(
+                    getter: (ExampleForDataStatelessWidget widget) =>
+                        widget.loginForm.username,
+                    setter: (ExampleForDataStatelessWidget widget,
+                            String username) =>
+                        widget.loginForm.username = username,
+                  );
+
+                  var password = builder.bind(
+                    getter: (ExampleForDataStatelessWidget widget) =>
+                        widget.loginForm.password,
+                    setter: (ExampleForDataStatelessWidget widget,
+                            String password) =>
+                        widget.loginForm.password = password,
+                  );
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
+                        'username = ${username.value}\npassword = ${password.value}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

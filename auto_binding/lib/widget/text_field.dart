@@ -218,25 +218,7 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
   late Function(String) stringToValue;
   late ValueSetter<String> onChanged;
 
-  void _handleUpdate() {
-    if (ChangeNotifier.debugAssertNotDisposed(_controller)) {
-      if (_controller.text != widget.binding.value) {
-        _controller.text = widget.binding.value;
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(BindingTextField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.binding != widget.binding) {
-      oldWidget.binding.removeListener(_handleUpdate);
-    }
-    widget.binding.addListener(_handleUpdate);
-  }
-
-  @override
-  void initState() {
+  void _changeWidget() {
     valueToString = widget.valueToString ?? (T t) => t as String;
     stringToValue = widget.stringToValue ?? (String text) => text as T;
     onChanged = (String text) {
@@ -245,9 +227,31 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
         widget.onChanged!(text);
       }
     };
+  }
+
+  void _bindController() {
+    widget.binding.bindValueNotifier<TextEditingValue>(
+      _controller,
+      covertToValue: (t) => _controller.value.copyWith(
+        text: valueToString(t),
+      ),
+      valueCovertTo: (v) => stringToValue(v.text) as T,
+    );
+  }
+
+  @override
+  void didUpdateWidget(BindingTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _changeWidget();
+    _bindController();
+  }
+
+  @override
+  void initState() {
+    _changeWidget();
     _controller =
-        TextEditingController(text: valueToString(widget.binding.value));
-    widget.binding.addListener(_handleUpdate);
+        TextEditingController(text: valueToString(widget.binding.raw));
+    _bindController();
     super.initState();
   }
 

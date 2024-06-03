@@ -48,10 +48,6 @@ Widget build(BuildContext context) {
 >
 > child is a regular widget called;
 
-> Note: The data provided by `ModelStatefulWidget` should not be defined at the same location as the calling data. If
-> the data provider and caller are not visible to each other across layers, the meaning of data sharing and state
-> synchronization will be lost.
-
 ### ModelStatelessWidget
 
 `ModelStatelessWidget`, similar to `ModelStatefulWidget`, also provides a `model` parameter that can be used directly as
@@ -67,7 +63,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-> The example is similar to the example of 'ModelStatefulWidget', but they differ when facing ancestor node refresh.
+> The example is similar to the example of `ModelStatefulWidget`, but they differ when facing ancestor node refresh
 > The ModelStatelessWidget is stateless, so the model will be recreated;
 > The ModelStatefulWidget can still retain data after refreshing;
 
@@ -101,11 +97,7 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
 }
 ```
 
-> Similarly, it is required that data provision be defined separately from invocation (in the example, it is a direct
-> subordinate, but the actual invocation is usually across many levels),
-
-> `DataState` provides a code area for freely defining shared data compared to `ModelStatefulWidget`
-> and `ModelStatelessWidget`.
+> Compared to `ModelStatefulWidget` and `ModelStatelessWidget`, `DataState` provides a code area for freely defining shared data.
 
 ### DataStatelessWidget
 
@@ -127,173 +119,152 @@ class ExampleForModelProviderWidget extends DataStatelessWidget {
 }
 ```
 
-> The usage is similar to 'DataState', which also requires the provider and caller to write separately,
-> Compared to `DataState`, it is also the difference between stateless refresh losing data and stateful refresh
-> preserving data.
+> The usage is similar to DataState, and shared data can also be freely defined.
 
 ## Data calling
 
-The data call is divided into three steps: establishing references, connecting context, and binding views;
+The data call is divided into three steps: creating a constructor, binding references, and binding views;
 
-### establishing references
+### Create Builder
 
-References can be divided into stateful references and stateless references
-
-State based usage: The 'StateRef' class completes the creation of reference instances
-
-```dart
-
-final usernameRef = StateRef<ModelState<LoginForm>, String>(
-  getter: (ModelState<LoginForm> state) => state.model.username,
-  setter: (ModelState<LoginForm> state, String username) =>
-  state.model.username = username,
-);
-```
-
-Stateless use: The 'WidgetRef' class completes the creation of reference instances
-
-```dart
-
-final usernameRef = WidgetRef<ModelStatelessWidget<LoginForm>, String>(
-  getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
-  setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
-  widget.model.username = username,
-);
-```
-
-> It is easy to see that the reference type needs to provide a getter and setter, as well as the type of the data
-> provider.
-
-> Stateless corresponds to the data provided by `ModelStatelessWidget` and `DataStatelessWidget`;
-
-> State corresponds to the data provided by `ModelState` and `DataState`;
-
-> <font color=yellow>Note: Referencing variables should be created outside of the build() function, rather than always
-> creating new ones following page refresh;</font>
-
-### connecting context
-
-Using the reference connection() to connect to the context can obtain a binding instance with an established binding
-relationship.
+Create a Builder through context
 
 ```dart
   @override
-Widget build(BuildContext context) {
-  var username = usernameRef.connect(context);
-  ...
-}
+  Widget build(BuildContext context) {
+    var builder = BindingBuilder(context);
+  }
 ```
 
-> The connection context should be written within the build() scope, and when the view is refreshed, it should be
-> reconnected to ensure that the binding is always up-to-date.
+> The bound context should adhere to a smaller range as much as possible, as any changes in the context are within the refreshed range.
 >
-> The context connected by connect() should adhere to a smaller scope as much as possible, The change in context is the
-> refresh range.
+> <font color=yellow>Note: The constructor must be created within the build() function;</font>
 
-### Direct connection
+### Binding references
 
+Two binding methods: direct binding and reference binding
 ```dart
+  final usernameRef = Ref(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+      widget.model.username = username,
+  );
 
-var password = Binding(
-  context,
-  WidgetRef(
-    getter: (ModelStatelessWidget<LoginForm> widget) =>
-    widget.model.password,
-    setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-    widget.model.password = password,
-  ),
-);
-```
+  @override
+  Widget build(BuildContext context) {
+    var builder = BindingBuilder(context);
+    /// Reference binding: using defined Ref variables
+    var username = builder.bindRef(usernameRef);
 
-### binding views
-
-Fill a WidgetTree with binding
-
-```dart
-Widget build(BuildContext context) {
-  /// connecting context
-  var username = usernameRef.connect(context);
-
-  var password = Binding(
-    context,
-    WidgetRef(
-      getter: (ModelStatelessWidget<LoginForm> widget) =>
-      widget.model.password,
+    /// Direct binding: provide getter/setter
+    var password = builder.bind(
+      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
       setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
       widget.model.password = password,
-    ),
-  );
-  return Column(
-    children: [
-      const Text('AutoBinding example for ModelStatelessWidget.',
-          style: TextStyle(
-              fontSize: 36,
-              color: Colors.deepOrange,
-              fontWeight: FontWeight.bold)),
-      const SizedBox(height: 20),
-      const Text('轻便的MVVM双向绑定的框架',
-          style: TextStyle(fontSize: 16, color: Colors.black38)),
-      const SizedBox(height: 30),
-
-      /// binding TextField
-      BindingTextField(
-        username,
-
-        /// 传入binding
-        decoration: const InputDecoration(
-          labelText: '用户名',
-          hintText: '请输入用户名',
-        ),
-        style: const TextStyle(
-            color: Colors.indigo, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 20),
-
-      /// binding TextField
-      BindingTextField(
-        password,
-
-        /// 传入binding
-        decoration: const InputDecoration(
-          labelText: '密码',
-          hintText: '请输入密码',
-        ),
-        style: const TextStyle(
-            color: Colors.indigo, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 20),
-    ],
-    const SizedBox(height: 30),
-    ElevatedButton(
-      onPressed: () async {
-        /// write data, to refresh view
-        username.value = '来自指定值的修改';
-        password.value = '来自指定值的修改';
-      },
-      style: const ButtonStyle(
-        backgroundColor:
-        MaterialStatePropertyAll<Color>(Colors.lightBlue),
-        foregroundColor:
-        MaterialStatePropertyAll<Color>(Colors.white),
-      ),
-      child: const Text('更改当前值'),
-    ),
-    const SizedBox(height: 30),
-    Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-            vertical: 4, horizontal: 10),
-        color: Colors.blueGrey,
-
-        /// binding value
-        child: Text(
-          'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
-        )),
-  );
-}
+    );
+    ...
+  }
 ```
 
-> In the example, bind to the TextField input box through `BindingTextField` and bind the value through bindTo();
+> When using multiple contexts, the way of `reference binding` should be considered, so that Ref variables can be reused
+
+### Binding views
+
+Fill a WidgetTree with binding
+```dart
+class ExampleForModelStatelessWidget extends StatelessWidget {
+  
+  final usernameRef = Ref(
+    getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
+    setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
+    widget.model.username = username,
+  );
+
+  Widget build(BuildContext context) {
+    /// connecting context
+    var builder = BindingBuilder(context);
+
+    var username = builder.bindRef(usernameRef);
+
+    /// no bind
+    username.raw;
+
+    var password = builder.bind(
+      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+      widget.model.password = password,
+    );
+    return Column(
+      children: [
+        const Text('AutoBinding example for ModelStatelessWidget.',
+            style: TextStyle(
+                fontSize: 36,
+                color: Colors.deepOrange,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+        const Text('轻便的MVVM双向绑定的框架',
+            style: TextStyle(fontSize: 16, color: Colors.black38)),
+        const SizedBox(height: 30),
+
+        /// binding TextField
+        BindingTextField(
+          username,
+
+          /// 传入binding
+          decoration: const InputDecoration(
+            labelText: '用户名',
+            hintText: '请输入用户名',
+          ),
+          style: const TextStyle(
+              color: Colors.indigo, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+
+        /// binding TextField
+        BindingTextField(
+          password,
+
+          /// 传入binding
+          decoration: const InputDecoration(
+            labelText: '密码',
+            hintText: '请输入密码',
+          ),
+          style: const TextStyle(
+              color: Colors.indigo, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 20),
+      ],
+      const SizedBox(height: 30),
+      ElevatedButton(
+        onPressed: () async {
+          /// write data, to refresh view
+          username.value = '来自指定值的修改';
+          password.value = '来自指定值的修改';
+        },
+        style: const ButtonStyle(
+          backgroundColor:
+          MaterialStatePropertyAll<Color>(Colors.lightBlue),
+          foregroundColor:
+          MaterialStatePropertyAll<Color>(Colors.white),
+        ),
+        child: const Text('更改当前值'),
+      ),
+      const SizedBox(height: 30),
+      Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+              vertical: 4, horizontal: 10),
+          color: Colors.blueGrey,
+
+          /// binding value
+          child: Text(
+            'username = ${username.value}\npassword = ${password.value}',
+          )),
+    );
+  }
+}
+```
+> In the example, bind to the TextField input box through `BindingTextField`, and bind the value to the Text view through `value`. `raw` will not generate binding;
 >
 > Modify from specified value through `username.value = '来自指定值的修改'` Assign values to immediately generate page
 > refresh;

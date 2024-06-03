@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (_) => const MyHomePage(title: 'DataBinding Demo Home Page'),
           '/ExampleForModelStatefulWidget': (_) => const ExampleForModelStatefulWidget(),
-          '/ExampleForModelStatelessWidget': (_) => const ExampleForModelStatelessWidget(),
+          '/ExampleForModelStatelessWidget': (_) => ExampleForModelStatelessWidget(),
           '/ExampleForDataStatefulWidget': (_) => ExampleForDataStatefulWidget(),
           '/ExampleForDataStatelessWidget': (_) => ExampleForDataStatelessWidget(),
         },

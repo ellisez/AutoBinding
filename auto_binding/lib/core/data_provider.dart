@@ -35,7 +35,9 @@ abstract class DataState<T extends StatefulWidget> extends State<T>
 
   Widget _build(BuildContext context) {
     if (_child == null) {
-      _child = builder(context);
+      _child = Builder(
+          builder: builder,
+      );
     }
     return _child!;
   }
@@ -57,6 +59,12 @@ class ModelState<T> extends DataState<ModelStatefulWidget<T>> {
   }
 
   @override
+  void didUpdateWidget(ModelStatefulWidget<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    model = widget.model;
+  }
+
+  @override
   void initState() {
     model = widget.model;
     super.initState();
@@ -66,11 +74,32 @@ class ModelState<T> extends DataState<ModelStatefulWidget<T>> {
   Widget builder(BuildContext context) => widget.child;
 }
 
-abstract class DataStatelessWidget extends StatelessWidget
-    implements ShouldNotifyDependents {
+class _ChildWidget extends StatefulWidget {
   final Widget child;
 
-  DataStatelessWidget({required this.child}) : super(key: GlobalKey());
+  _ChildWidget({required this.child});
+
+  @override
+  State<StatefulWidget> createState() => _ChildState();
+}
+
+class _ChildState extends State<_ChildWidget> {
+  Widget? _child;
+
+  Widget _build(BuildContext context) {
+    if (_child == null) {
+      _child = widget.child;
+    }
+    return _child!;
+  }
+
+  @override
+  Widget build(BuildContext context) => _build(context);
+}
+
+abstract class DataStatelessWidget extends StatelessWidget
+    implements ShouldNotifyDependents {
+  DataStatelessWidget() : super(key: GlobalKey());
 
   static T? of<T extends DataStatelessWidget>(BuildContext context) {
     return context.findAncestorWidgetOfExactType<T>();
@@ -81,10 +110,16 @@ abstract class DataStatelessWidget extends StatelessWidget
     (globalKey.currentContext as StatelessElement).markNeedsBuild();
   }
 
+  Widget builder(BuildContext context);
+
   @override
   Widget build(BuildContext context) {
     return DependentManager(
-      child: this.child,
+      child: _ChildWidget(
+        child: Builder(
+          builder: builder,
+        ),
+      ),
       notifyDependents: notifyDependents,
     );
   }
@@ -92,10 +127,14 @@ abstract class DataStatelessWidget extends StatelessWidget
 
 class ModelStatelessWidget<T> extends DataStatelessWidget {
   final T model;
+  final Widget child;
 
   static T? of<T extends ModelStatelessWidget>(BuildContext context) {
     return context.findAncestorWidgetOfExactType<T>();
   }
 
-  ModelStatelessWidget({required this.model, required super.child});
+  ModelStatelessWidget({required this.model, required this.child});
+
+  @override
+  Widget builder(BuildContext context) => this.child;
 }

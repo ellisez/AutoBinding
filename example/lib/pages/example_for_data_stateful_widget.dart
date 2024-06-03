@@ -14,36 +14,22 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
   String password = '';
 
   @override
-  Widget builder(BuildContext context) => const CallDataStatefulWidget();
-}
+  Widget builder(BuildContext context) {
+    var builder = BindingBuilder(context);
 
-class CallDataStatefulWidget extends StatefulWidget {
-  const CallDataStatefulWidget({super.key});
-
-  @override
-  State<StatefulWidget> createState() => CallDataState();
-}
-
-class CallDataState extends State<CallDataStatefulWidget> {
-  var usernameRef = StateRef(
-    getter: (ExampleForDataState state) => state.username,
-    setter: (ExampleForDataState state, String username) =>
-        state.username = username,
-  );
-
-  var passwordRef = StateRef(
-    getter: (ExampleForDataState state) => state.password,
-    setter: (ExampleForDataState state, String password) =>
-        state.password = password,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    var username = usernameRef.connect(context);
+    var username = builder.bind(
+      getter: (ExampleForDataState state) => state.username,
+      setter: (ExampleForDataState state, String username) =>
+          state.username = username,
+    );
 
     username.value;
 
-    var password = passwordRef.connect(context);
+    var password = builder.bind(
+      getter: (ExampleForDataState state) => state.password,
+      setter: (ExampleForDataState state, String password) =>
+          state.password = password,
+    );
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -133,15 +119,26 @@ class CallDataState extends State<CallDataStatefulWidget> {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var username = usernameRef.connect(subContext);
-                  var password = passwordRef.connect(subContext);
+                  var builder = BindingBuilder(subContext);
+
+                  var username = builder.bind(
+                    getter: (ExampleForDataState state) => state.username,
+                    setter: (ExampleForDataState state, String username) =>
+                    state.username = username,
+                  );
+
+                  var password = builder.bind(
+                    getter: (ExampleForDataState state) => state.password,
+                    setter: (ExampleForDataState state, String password) =>
+                    state.password = password,
+                  );
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.bindTo()}\npassword = ${password.bindTo()}',
+                        'username = ${username.value}\npassword = ${password.value}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

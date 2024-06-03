@@ -7,18 +7,21 @@ abstract class ShouldNotifyDependents {
   void notifyDependents();
 }
 
-class DependentIsChange<P extends ShouldNotifyDependents,T> {
-  Ref<P, T> binder;
+class DependentIsChange<P extends ShouldNotifyDependents, T> {
+  Binding<P, T> binding;
   T value;
 
-  bool isChange(Element element) {
-    var provider = binder.findProvider(element);
+  bool isChange() {
     var oldValue = value;
-    value = binder.getter(provider);
+    value = binding.raw;
     return value != oldValue;
   }
 
-  DependentIsChange({required this.binder, required this.value});
+  reset() {
+    binding.reset();
+  }
+
+  DependentIsChange({required this.binding, required this.value});
 }
 
 class DependentManager extends InheritedWidget {
@@ -42,26 +45,32 @@ class DependentManagerElement extends InheritedElement {
   DependentManagerElement(super.widget);
 
   @override
+  Set<DependentIsChange>? getDependencies(Element dependent) =>
+      super.getDependencies(dependent) as Set<DependentIsChange>?;
+
+  @override
   void updateDependencies(Element dependent, Object? aspect) {
-    final Set<DependentIsChange>? dependencies = getDependencies(dependent) as Set<DependentIsChange>?;
+    final Set<DependentIsChange>? dependencies = getDependencies(dependent);
 
     if (aspect == null) {
       setDependencies(dependent, HashSet<DependentIsChange>());
     } else {
       assert(aspect is DependentIsChange);
-      setDependencies(dependent, (dependencies ?? HashSet<DependentIsChange>())..add(aspect as DependentIsChange));
+      setDependencies(
+          dependent,
+          (dependencies ?? HashSet<DependentIsChange>())
+            ..add(aspect as DependentIsChange));
     }
   }
 
   @protected
   void notifyDependent(covariant InheritedWidget oldWidget, Element dependent) {
-    final Set<DependentIsChange>? dependencies =
-    getDependencies(dependent) as Set<DependentIsChange>?;
+    final Set<DependentIsChange>? dependencies = getDependencies(dependent);
     if (dependencies == null || dependencies.isEmpty) {
       return;
     }
-    for (var dependRelationship in dependencies) {
-      if (dependRelationship.isChange(dependent)) {
+    for (var dependentIsChange in dependencies) {
+      if (dependentIsChange.isChange()) {
         dependent.didChangeDependencies();
         break;
       }
