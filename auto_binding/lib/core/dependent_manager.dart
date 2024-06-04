@@ -7,7 +7,7 @@ abstract class ShouldNotifyDependents {
   void notifyDependents();
 }
 
-class DependentIsChange<P extends ShouldNotifyDependents, T> {
+abstract class DependentExecutor<P extends ShouldNotifyDependents, T> {
   Binding<P, T> binding;
   T value;
 
@@ -17,11 +17,20 @@ class DependentIsChange<P extends ShouldNotifyDependents, T> {
     return value != oldValue;
   }
 
-  reset() {
-    binding.reset();
+  dispose() {
+    binding.dispose();
   }
 
-  DependentIsChange({required this.binding, required this.value});
+  DependentExecutor(this.binding): value = binding.raw;
+}
+
+class BuildDependentExecutor<P extends ShouldNotifyDependents, T> extends DependentExecutor<P, T> {
+  BuildDependentExecutor(BuildBinding<P, T> binding): super(binding);
+}
+
+class NotifierDependentExecutor<P extends ShouldNotifyDependents, T> extends DependentExecutor<P, T> {
+  NotifierDependentExecutor(NotifierBinding<P, T> binding): super(binding);
+
 }
 
 class DependentManager extends InheritedWidget {
@@ -45,32 +54,32 @@ class DependentManagerElement extends InheritedElement {
   DependentManagerElement(super.widget);
 
   @override
-  Set<DependentIsChange>? getDependencies(Element dependent) =>
-      super.getDependencies(dependent) as Set<DependentIsChange>?;
+  Set<DependentExecutor>? getDependencies(Element dependent) =>
+      super.getDependencies(dependent) as Set<DependentExecutor>?;
 
   @override
   void updateDependencies(Element dependent, Object? aspect) {
-    final Set<DependentIsChange>? dependencies = getDependencies(dependent);
+    final Set<DependentExecutor>? dependencies = getDependencies(dependent);
 
     if (aspect == null) {
-      setDependencies(dependent, HashSet<DependentIsChange>());
+      setDependencies(dependent, HashSet<DependentExecutor>());
     } else {
-      assert(aspect is DependentIsChange);
+      assert(aspect is DependentExecutor);
       setDependencies(
           dependent,
-          (dependencies ?? HashSet<DependentIsChange>())
-            ..add(aspect as DependentIsChange));
+          (dependencies ?? HashSet<DependentExecutor>())
+            ..add(aspect as DependentExecutor));
     }
   }
 
   @protected
   void notifyDependent(covariant InheritedWidget oldWidget, Element dependent) {
-    final Set<DependentIsChange>? dependencies = getDependencies(dependent);
+    final Set<DependentExecutor>? dependencies = getDependencies(dependent);
     if (dependencies == null || dependencies.isEmpty) {
       return;
     }
-    for (var dependentIsChange in dependencies) {
-      if (dependentIsChange.isChange()) {
+    for (var dependentExecutor in dependencies) {
+      if (dependentExecutor.isChange()) {
         dependent.didChangeDependencies();
         break;
       }

@@ -8,12 +8,12 @@ import 'package:auto_binding/core/data_inject.dart';
 
 class BindingTextField<P extends ShouldNotifyDependents, T>
     extends StatefulWidget {
-  final Binding<P, T> binding;
+  final Ref<P, T> ref;
   final String Function(T)? valueToString;
   final T Function(String)? stringToValue;
 
   BindingTextField(
-    this.binding, {
+    this.ref, {
     this.valueToString,
     this.stringToValue,
     super.key,
@@ -208,65 +208,41 @@ class BindingTextField<P extends ShouldNotifyDependents, T>
   final SpellCheckConfiguration? spellCheckConfiguration;
 
   @override
-  State<StatefulWidget> createState() => _BindingTextFieldState<T>();
+  State<StatefulWidget> createState() => _BindingTextFieldState<P, T>();
 }
 
-class _BindingTextFieldState<T> extends State<BindingTextField> {
-  late TextEditingController _controller;
+class _BindingTextFieldState<P extends ShouldNotifyDependents, T> extends State<BindingTextField<P, T>> {
+  final TextEditingController _controller = TextEditingController();
 
-  late String Function(T) valueToString;
-  late Function(String) stringToValue;
-  late ValueSetter<String> onChanged;
+  @override
+  Widget build(BuildContext context) {
+    var builder = BindingBuilder(context);
 
-  void _changeWidget() {
-    valueToString = widget.valueToString ?? (T t) => t as String;
-    stringToValue = widget.stringToValue ?? (String text) => text as T;
-    onChanged = (String text) {
-      widget.binding.value = stringToValue(text);
+    var binding = builder.createNotifierBinding(widget.ref);
+
+    var valueToString = widget.valueToString ?? (T t) => t as String;
+    var stringToValue = widget.stringToValue ?? (String text) => text as T;
+
+    var onChanged = (String text) {
+      binding.value = stringToValue(text);
       if (widget.onChanged != null) {
         widget.onChanged!(text);
       }
     };
-  }
 
-  void _bindController() {
-    widget.binding.bindValueNotifier<TextEditingValue>(
+    binding.bindValueNotifier<TextEditingValue>(
       _controller,
       covertToValue: (t) {
         var text = valueToString(t);
         return _controller.text == text
             ? _controller.value
             : _controller.value.copyWith(
-                text: text,
-              );
+          text: text,
+        );
       },
       valueCovertTo: (v) => stringToValue(v.text) as T,
     );
-  }
 
-  void _unbindController(BindingTextField oldWidget) {
-    oldWidget.binding.unbindNotifier(_controller);
-  }
-
-  @override
-  void didUpdateWidget(BindingTextField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _unbindController(oldWidget);
-    _changeWidget();
-    _bindController();
-  }
-
-  @override
-  void initState() {
-    _changeWidget();
-    _controller =
-        TextEditingController(text: valueToString(widget.binding.raw));
-    _bindController();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
       focusNode: widget.focusNode,

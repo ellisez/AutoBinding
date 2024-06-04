@@ -1,4 +1,3 @@
-
 import 'package:auto_binding/auto_binding.dart';
 import 'package:flutter/widgets.dart';
 
@@ -59,27 +58,29 @@ class BindingBuilder {
         _context.getElementForInheritedWidgetOfExactType<DependentManager>()
             as DependentManagerElement?;
     if (dependentManagerElement == null) {
-      throw AssertionError('No data provider installed, please check the location of the context.');
+      throw AssertionError(
+          'No data provider installed, please check the location of the context.');
     }
     var dependencies = dependentManagerElement.getDependencies(element);
     if (dependencies == null) {
       return;
     }
     for (var dependentIsChange in dependencies) {
-      dependentIsChange.reset();
+      dependentIsChange.dispose();
     }
     dependentManagerElement.updateDependencies(element, null);
-
   }
 
-  Binding<P, T> bind<P extends ShouldNotifyDependents, T>({
-    required T Function(P) getter,
-    required void Function(P, T) setter,
-  }) =>
-      Binding._(this, getter: getter, setter: setter);
+  BuildBinding<P, T> createBuildBinding<P extends ShouldNotifyDependents, T>(
+          Ref<P, T> ref) =>
+      BuildBinding._(this, ref);
 
-  Binding<P, T> bindRef<P extends ShouldNotifyDependents, T>(Ref<P, T> ref) =>
-      Binding._ref(this, ref);
+  NotifierBinding<P, T>
+      createNotifierBinding<P extends ShouldNotifyDependents, T>(
+              Ref<P, T> ref) =>
+          NotifierBinding._(this, ref);
+
+  void watch<P extends ShouldNotifyDependents, T>(Ref<P, T> ref) => BuildBinding._(this, ref).value;
 }
 
 class Ref<P extends ShouldNotifyDependents, T> {
@@ -89,72 +90,106 @@ class Ref<P extends ShouldNotifyDependents, T> {
   Ref({required this.getter, required this.setter});
 }
 
-class Binding<P extends ShouldNotifyDependents, T> extends Listenable {
-  List<VoidCallback> _listeners = List<VoidCallback>.empty(growable: true);
-
+abstract class Binding<P extends ShouldNotifyDependents, T> {
   Ref<P, T> ref;
 
   BindingBuilder builder;
 
-  Map<Listenable, BindingNotifier> _bindingListenable = {};
-  late P _provider;
+  P? _provider;
 
-  Binding._(
-    BindingBuilder binding, {
-    required T Function(P) getter,
-    required void Function(P, T) setter,
-  }) : this._ref(binding, Ref<P, T>(getter: getter, setter: setter));
+  P get provider {
+    if (_provider == null) {
+      var provider = findProvider<P>(builder._context);
+      assert(provider != null, '$P cannot be found in the widget tree.');
+      _provider = provider!;
+    }
+    return _provider!;
+  }
 
-  Binding._ref(this.builder, this.ref) {
+  Binding(this.builder, this.ref) {
     assert(
         builder._context.owner?.debugBuilding ??
             builder._context.debugDoingBuild,
         'new Ref can only run during the method of build() calls.');
-    var provider = findProvider<P>(builder._context);
-    assert(provider != null, '$P cannot be found in the widget tree.');
-    _provider = provider!;
   }
 
+  T get value;
+
+  T get raw => ref.getter(provider);
+
+  set value(T value) {
+    var old = ref.getter(provider);
+    if (old != value) {
+      ref.setter(provider, value);
+      provider.notifyDependents();
+    }
+  }
+
+  void dispose();
+}
+
+class BuildBinding<P extends ShouldNotifyDependents, T> extends Binding<P, T> {
+  BuildBinding._(super.builder, super.ref);
+
   T get value {
-    var newValue = raw;
     if (builder._context.owner?.debugBuilding ??
         builder._context.debugDoingBuild) {
       builder._context.dependOnInheritedWidgetOfExactType<DependentManager>(
-        aspect: DependentIsChange<P, T>(binding: this, value: newValue),
+        aspect: BuildDependentExecutor<P, T>(this),
       );
     }
-    return newValue;
+    return raw;
   }
 
-  T get raw => ref.getter(_provider);
+  @override
+  void dispose() {}
+}
 
+class NotifierBinding<P extends ShouldNotifyDependents, T> extends Binding<P, T>
+    implements Listenable {
+  NotifierBinding._(super.builder, super.ref);
+
+  List<VoidCallback> _listeners = List<VoidCallback>.empty(growable: true);
+  Map<Listenable, BindingNotifier> _bindingListenable = {};
+
+  @override
+  T get value {
+    if (builder._context.owner?.debugBuilding ??
+        builder._context.debugDoingBuild) {
+      builder._context.dependOnInheritedWidgetOfExactType<DependentManager>(
+        aspect: NotifierDependentExecutor<P, T>(this),
+      );
+    }
+    return raw;
+  }
+
+  @override
   set value(T value) {
-    var old = ref.getter(_provider);
-    if (old != value) {
-      ref.setter(_provider, value);
-      notifyListeners();
-      _provider.notifyDependents();
+    super.value = value;
+    notifyListeners();
+  }
+
+  void bindNotifier(
+    ChangeNotifier notifier, {
+    required VoidCallback setToNotifier,
+    required VoidCallback getFromNotifier,
+  }) {
+    _bindingListenable[notifier] = BindingNotifier(
+        setToNotifier: setToNotifier, getFromNotifier: getFromNotifier);
+
+    if (builder._context.owner?.debugBuilding ??
+        builder._context.debugDoingBuild) {
+      builder._context.dependOnInheritedWidgetOfExactType<DependentManager>(
+        aspect: NotifierDependentExecutor<P, T>(this),
+      );
     }
   }
 
-  void bindNotifier(ChangeNotifier notifier,
-      {required VoidCallback setToNotifier,
-      required VoidCallback getFromNotifier}) {
-    // if (!ChangeNotifier.debugAssertNotDisposed(notifier)) {
-    //   unbindNotifier(notifier);
-    //   return;
-    // }
-    _bindingListenable[notifier] = BindingNotifier(
-        setToNotifier: setToNotifier, getFromNotifier: getFromNotifier);
-  }
-
-  void bindValueNotifier<V>(ValueNotifier<V> valueNotifier,
-      {V Function(T)? covertToValue, T Function(V)? valueCovertTo}) {
-    // if (!ChangeNotifier.debugAssertNotDisposed(valueNotifier)) {
-    //   unbindNotifier(valueNotifier);
-    //   return;
-    // }
-
+  void bindValueNotifier<V>(
+    ValueNotifier<V> valueNotifier, {
+    V Function(T)? covertToValue,
+    T Function(V)? valueCovertTo,
+  }) {
     if (covertToValue == null) {
       covertToValue = (T t) => t as V;
     }
@@ -172,6 +207,15 @@ class Binding<P extends ShouldNotifyDependents, T> extends Listenable {
 
     _bindingListenable[valueNotifier] = BindingNotifier(
         setToNotifier: setToNotifier, getFromNotifier: getFromNotifier);
+
+    setToNotifier();
+
+    if (builder._context.owner?.debugBuilding ??
+        builder._context.debugDoingBuild) {
+      builder._context.dependOnInheritedWidgetOfExactType<DependentManager>(
+        aspect: NotifierDependentExecutor<P, T>(this),
+      );
+    }
   }
 
   void unbindNotifier(ChangeNotifier notifier) {
@@ -182,14 +226,6 @@ class Binding<P extends ShouldNotifyDependents, T> extends Listenable {
     removeListener(bindingNotifier.setToNotifier);
     notifier.removeListener(bindingNotifier.getFromNotifier);
     _bindingListenable.remove(notifier);
-  }
-
-  void reset() {
-    _bindingListenable.forEach((notifier, bindingNotifier) {
-      notifier.removeListener(bindingNotifier.getFromNotifier);
-    });
-    _bindingListenable.clear();
-    _listeners.clear();
   }
 
   @override
@@ -206,5 +242,14 @@ class Binding<P extends ShouldNotifyDependents, T> extends Listenable {
     for (var listener in _listeners) {
       listener();
     }
+  }
+
+  @override
+  void dispose() {
+    _bindingListenable.forEach((notifier, bindingNotifier) {
+      notifier.removeListener(bindingNotifier.getFromNotifier);
+    });
+    _bindingListenable.clear();
+    _listeners.clear();
   }
 }

@@ -33,11 +33,11 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
       child: Builder(builder: (context) {
         var builder = BindingBuilder(context);
 
-        var username = builder.bindRef(usernameRef);
+        var username = builder.createBuildBinding(usernameRef);
 
         username.value;
 
-        var password = builder.bindRef(passwordRef);
+        var password = builder.createBuildBinding(passwordRef);
         debugPrint('父视图发生刷新');
         return Scaffold(
           body: Container(
@@ -59,7 +59,7 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                         style: TextStyle(fontSize: 16, color: Colors.black38)),
                     const SizedBox(height: 30),
                     BindingTextField(
-                      username,
+                      usernameRef,
                       decoration: const InputDecoration(
                         labelText: '用户名',
                         hintText: '请输入用户名',
@@ -69,7 +69,7 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                     ),
                     const SizedBox(height: 20),
                     BindingTextField(
-                      password,
+                      passwordRef,
                       decoration: const InputDecoration(
                         labelText: '密码',
                         hintText: '请输入密码',
@@ -127,9 +127,9 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                       debugPrint('子视图发生刷新');
                       var builder = BindingBuilder(subContext);
 
-                      var username = builder.bindRef(usernameRef);
+                      var username = builder.createBuildBinding(usernameRef);
 
-                      var password = builder.bindRef(passwordRef);
+                      var password = builder.createBuildBinding(passwordRef);
                       return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(

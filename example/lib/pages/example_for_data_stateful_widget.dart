@@ -17,18 +17,22 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
   Widget builder(BuildContext context) {
     var builder = BindingBuilder(context);
 
-    var username = builder.bind(
-      getter: (ExampleForDataState state) => state.username,
-      setter: (ExampleForDataState state, String username) =>
-          state.username = username,
+    var username = builder.createBuildBinding(
+      Ref(
+        getter: (ExampleForDataState state) => state.username,
+        setter: (ExampleForDataState state, String username) =>
+            state.username = username,
+      ),
     );
 
     username.value;
 
-    var password = builder.bind(
-      getter: (ExampleForDataState state) => state.password,
-      setter: (ExampleForDataState state, String password) =>
-          state.password = password,
+    var password = builder.createBuildBinding(
+      Ref(
+        getter: (ExampleForDataState state) => state.password,
+        setter: (ExampleForDataState state, String password) =>
+            state.password = password,
+      ),
     );
     debugPrint('父视图发生刷新');
     return Scaffold(
@@ -52,7 +56,11 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                     style: TextStyle(fontSize: 16, color: Colors.black38)),
                 const SizedBox(height: 30),
                 BindingTextField(
-                  username,
+                  Ref(
+                    getter: (ExampleForDataState state) => state.username,
+                    setter: (ExampleForDataState state, String username) =>
+                        state.username = username,
+                  ),
                   decoration: const InputDecoration(
                     labelText: '用户名',
                     hintText: '请输入用户名',
@@ -62,7 +70,11 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                 ),
                 const SizedBox(height: 20),
                 BindingTextField(
-                  password,
+                  Ref(
+                    getter: (ExampleForDataState state) => state.password,
+                    setter: (ExampleForDataState state, String password) =>
+                        state.password = password,
+                  ),
                   decoration: const InputDecoration(
                     labelText: '密码',
                     hintText: '请输入密码',
@@ -121,16 +133,20 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                   debugPrint('子视图发生刷新');
                   var builder = BindingBuilder(subContext);
 
-                  var username = builder.bind(
-                    getter: (ExampleForDataState state) => state.username,
-                    setter: (ExampleForDataState state, String username) =>
-                    state.username = username,
+                  var username = builder.createBuildBinding(
+                    Ref(
+                      getter: (ExampleForDataState state) => state.username,
+                      setter: (ExampleForDataState state, String username) =>
+                          state.username = username,
+                    ),
                   );
 
-                  var password = builder.bind(
-                    getter: (ExampleForDataState state) => state.password,
-                    setter: (ExampleForDataState state, String password) =>
-                    state.password = password,
+                  var password = builder.createBuildBinding(
+                    Ref(
+                      getter: (ExampleForDataState state) => state.password,
+                      setter: (ExampleForDataState state, String password) =>
+                          state.password = password,
+                    ),
                   );
                   return Container(
                       width: double.infinity,

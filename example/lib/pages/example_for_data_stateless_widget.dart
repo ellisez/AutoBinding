@@ -24,11 +24,11 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
   Widget builder(BuildContext context) {
     var builder = BindingBuilder(context);
 
-    var username = builder.bindRef(usernameRef);
+    var username = builder.createBuildBinding(usernameRef);
 
     username.value;
 
-    var password = builder.bindRef(passwordRef);
+    var password = builder.createBuildBinding(passwordRef);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -50,7 +50,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     style: TextStyle(fontSize: 16, color: Colors.black38)),
                 const SizedBox(height: 30),
                 BindingTextField(
-                  username,
+                  usernameRef,
                   decoration: const InputDecoration(
                     labelText: '用户名',
                     hintText: '请输入用户名',
@@ -60,7 +60,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 BindingTextField(
-                  password,
+                  passwordRef,
                   decoration: const InputDecoration(
                     labelText: '密码',
                     hintText: '请输入密码',
@@ -118,20 +118,24 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                   debugPrint('子视图发生刷新');
                   var builder = BindingBuilder(subContext);
 
-                  var username = builder.bind(
-                    getter: (ExampleForDataStatelessWidget widget) =>
-                        widget.loginForm.username,
-                    setter: (ExampleForDataStatelessWidget widget,
-                            String username) =>
-                        widget.loginForm.username = username,
+                  var username = builder.createBuildBinding(
+                    Ref(
+                      getter: (ExampleForDataStatelessWidget widget) =>
+                          widget.loginForm.username,
+                      setter: (ExampleForDataStatelessWidget widget,
+                              String username) =>
+                          widget.loginForm.username = username,
+                    ),
                   );
 
-                  var password = builder.bind(
-                    getter: (ExampleForDataStatelessWidget widget) =>
-                        widget.loginForm.password,
-                    setter: (ExampleForDataStatelessWidget widget,
-                            String password) =>
-                        widget.loginForm.password = password,
+                  var password = builder.createBuildBinding(
+                    Ref(
+                      getter: (ExampleForDataStatelessWidget widget) =>
+                          widget.loginForm.password,
+                      setter: (ExampleForDataStatelessWidget widget,
+                              String password) =>
+                          widget.loginForm.password = password,
+                    ),
                   );
                   return Container(
                       width: double.infinity,

@@ -154,13 +154,15 @@ Two binding methods: direct binding and reference binding
   Widget build(BuildContext context) {
     var builder = BindingBuilder(context);
     /// Reference binding: using defined Ref variables
-    var username = builder.bindRef(usernameRef);
+    var username = builder.createBuildBinding(usernameRef);
 
     /// Direct binding: provide getter/setter
-    var password = builder.bind(
-      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
-      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-      widget.model.password = password,
+    var password = builder.createBuildBinding(
+      Ref(
+        getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+        setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+        widget.model.password = password,
+      ),
     );
     ...
   }
@@ -184,15 +186,17 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
     /// connecting context
     var builder = BindingBuilder(context);
 
-    var username = builder.bindRef(usernameRef);
+    var username = builder.createBuildBinding(usernameRef);
 
     /// no bind
     username.raw;
 
-    var password = builder.bind(
-      getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
-      setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-      widget.model.password = password,
+    var password = builder.createBuildBinding(
+      Ref(
+        getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+        setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+        widget.model.password = password,
+      ),
     );
     return Column(
       children: [
@@ -208,7 +212,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          username,
+          usernameRef,
 
           /// 传入binding
           decoration: const InputDecoration(
@@ -222,7 +226,11 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          password,
+          Ref(
+            getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
+            setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+            widget.model.password = password,
+          ),
 
           /// 传入binding
           decoration: const InputDecoration(

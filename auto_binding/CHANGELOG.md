@@ -88,3 +88,7 @@
 
 ## 2.0.10
 - fix bug: BindingTextField unbind.
+
+## 2.0.11
+- fix bug: Notifier unbind.
+- add BindingBuild.watch().

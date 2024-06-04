@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import 'data_inject.dart';
 import 'dependent_manager.dart';
 
 abstract class DataStatefulWidget extends StatefulWidget {
