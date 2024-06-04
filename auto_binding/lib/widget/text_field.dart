@@ -239,9 +239,14 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
     );
   }
 
+  void _unbindController(BindingTextField oldWidget) {
+    oldWidget.binding.unbindNotifier(_controller);
+  }
+
   @override
   void didUpdateWidget(BindingTextField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _unbindController(oldWidget);
     _changeWidget();
     _bindController();
   }

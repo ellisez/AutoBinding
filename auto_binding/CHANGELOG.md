@@ -82,3 +82,6 @@
 
 ## 2.0.8
 - Support peer use.
+
+## 2.0.9
+- fix bug: BindingTextField unbind.
