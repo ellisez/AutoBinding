@@ -232,9 +232,14 @@ class _BindingTextFieldState<T> extends State<BindingTextField> {
   void _bindController() {
     widget.binding.bindValueNotifier<TextEditingValue>(
       _controller,
-      covertToValue: (t) => _controller.value.copyWith(
-        text: valueToString(t),
-      ),
+      covertToValue: (t) {
+        var text = valueToString(t);
+        return _controller.text == text
+            ? _controller.value
+            : _controller.value.copyWith(
+                text: text,
+              );
+      },
       valueCovertTo: (v) => stringToValue(v.text) as T,
     );
   }
