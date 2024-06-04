@@ -240,7 +240,7 @@ class _BindingTextFieldState<P extends ShouldNotifyDependents, T> extends State<
           text: text,
         );
       },
-      valueCovertTo: (v) => stringToValue(v.text) as T,
+      valueCovertTo: (v) => stringToValue(v.text),
     );
 
     return TextField(
