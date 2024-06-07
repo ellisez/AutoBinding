@@ -51,7 +51,7 @@ class DependentManager extends InheritedWidget {
       {super.key, required super.child, required this.notifyDependents});
 
   static W? of<W extends DependentManager>(BuildContext context) {
-    return context.getInheritedWidgetOfExactType<W>();
+    return context.getElementForInheritedWidgetOfExactType<W>()?.widget as W?;
   }
 
   @override

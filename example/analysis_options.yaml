@@ -1,3 +1,7 @@
 
 linter:
   rules:
+
+analyzer:
+  enable-experiment:
+    - macros

@@ -1,32 +1,23 @@
+import 'package:example/models/3_x.dart';
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
-  final loginForm = LoginForm('', '');
+  final loginFormRef = LoginForm('', '').toRef();
 
   ExampleForDataStatelessWidget();
-
-  late final usernameRef = Ref(
-    getter: () => loginForm.username,
-    setter: (String username) => loginForm.username = username,
-  );
-
-  late final passwordRef = Ref(
-    getter: () => loginForm.password,
-    setter: (String password) => loginForm.password = password,
-  );
 
   @override
   Widget builder(BuildContext context) {
     var node = Binding.mount(context);
 
-    var username = usernameRef(node);
+    var username = loginFormRef.username(node);
 
     username.value;
 
-    var password = passwordRef(node);
+    var password = loginFormRef.password(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -48,7 +39,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     style: TextStyle(fontSize: 16, color: Colors.black38)),
                 const SizedBox(height: 30),
                 BindingTextField(
-                  usernameRef,
+                  username.ref,
                   decoration: const InputDecoration(
                     labelText: '用户名',
                     hintText: '请输入用户名',
@@ -58,7 +49,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 BindingTextField(
-                  passwordRef,
+                  password.ref,
                   decoration: const InputDecoration(
                     labelText: '密码',
                     hintText: '请输入密码',
@@ -85,8 +76,8 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        username.value = '来自指定值的修改';
-                        password.value = '来自指定值的修改';
+                        username.notifyChange('来自指定值的修改');
+                        loginFormRef.password.$notifyChange(node, '来自指定值的修改');
                       },
                       style: const ButtonStyle(
                         backgroundColor:
@@ -116,25 +107,13 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                   debugPrint('子视图发生刷新');
                   var node = Binding.mount(subContext);
 
-                  var username = Ref(
-                    getter: () => loginForm.username,
-                    setter: (String username) => loginForm.username = username,
-                  )(node);
-
-                  var password = Ref.fromData(
-                    getter: (ExampleForDataStatelessWidget widget) =>
-                        widget.loginForm.password,
-                    setter: (ExampleForDataStatelessWidget widget,
-                            String password) =>
-                        widget.loginForm.password = password,
-                  )(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
+                        'username = ${loginFormRef.username.$bindChange(node)}\npassword = ${password.bindChange()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

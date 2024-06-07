@@ -127,9 +127,9 @@ class Ref<T> {
   }) =>
       DataRef._(getter: getter, setter: setter);
 
-  T $bindChange({required BindingNode node}) => call(node).bindChange();
+  T $bindChange(BindingNode node) => call(node).bindChange();
 
-  void $notifyChange({required BindingNode node, required T value}) =>
+  void $notifyChange(BindingNode node, T value) =>
       call(node).notifyChange(value);
 
   T get $value => _getter();
