@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'dependent_manager.dart';
+import 'dependent.dart';
 
 abstract class DataStatefulWidget extends StatefulWidget {
   DataStatefulWidget({super.key});
@@ -20,7 +20,7 @@ class ModelStatefulWidget<T> extends DataStatefulWidget {
 }
 
 abstract class DataState<T extends StatefulWidget> extends State<T>
-    implements ShouldNotifyDependents {
+    implements DataProvider {
   Widget? _child;
 
   static T? of<T extends DataState>(BuildContext context) {
@@ -98,7 +98,7 @@ class _ChildState extends State<_ChildWidget> {
 }
 
 abstract class DataStatelessWidget extends StatelessWidget
-    implements ShouldNotifyDependents {
+    implements DataProvider {
   DataStatelessWidget() : super(key: GlobalKey());
 
   static T? of<T extends DataStatelessWidget>(BuildContext context) {

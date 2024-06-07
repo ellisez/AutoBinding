@@ -1,36 +1,46 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'data_inject.dart';
+import 'inject.dart';
 
-abstract class ShouldNotifyDependents {
+abstract class DataProvider {
   void notifyDependents();
 }
 
-abstract class DependentExecutor<P extends ShouldNotifyDependents, T> {
-  Binding<P, T> binding;
+abstract class DependentExecutor<T> {
+  Ref<T> ref;
   T value;
 
   bool isChange() {
     var oldValue = value;
-    value = binding.raw;
+    value = ref();
     return value != oldValue;
   }
 
-  dispose() {
-    binding.dispose();
+  dispose() {}
+
+  DependentExecutor(this.ref): value = ref();
+}
+
+class BuildDependentExecutor<T> extends DependentExecutor<T> {
+  ContextBinding<T> binding;
+  BuildDependentExecutor(this.binding): super(binding.ref);
+}
+
+class NotifierDependentExecutor<T> extends DependentExecutor<T> {
+  NotifierBinding<T> binding;
+  NotifierDependentExecutor(this.binding): super(binding.ref);
+
+  @override
+  bool isChange() {
+    if (super.isChange()) {
+      binding.onChange(binding);
+    }
+    return false;
   }
 
-  DependentExecutor(this.binding): value = binding.raw;
-}
-
-class BuildDependentExecutor<P extends ShouldNotifyDependents, T> extends DependentExecutor<P, T> {
-  BuildDependentExecutor(BuildBinding<P, T> binding): super(binding);
-}
-
-class NotifierDependentExecutor<P extends ShouldNotifyDependents, T> extends DependentExecutor<P, T> {
-  NotifierDependentExecutor(NotifierBinding<P, T> binding): super(binding);
-
+  @override
+  dispose() => binding.dispose();
 }
 
 class DependentManager extends InheritedWidget {

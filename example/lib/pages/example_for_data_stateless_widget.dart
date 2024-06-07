@@ -8,27 +8,25 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 
   ExampleForDataStatelessWidget();
 
-  final usernameRef = Ref(
-    getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.username,
-    setter: (ExampleForDataStatelessWidget widget, String username) =>
-        widget.loginForm.username = username,
+  late final usernameRef = Ref(
+    getter: () => loginForm.username,
+    setter: (String username) => loginForm.username = username,
   );
 
-  final passwordRef = Ref(
-    getter: (ExampleForDataStatelessWidget widget) => widget.loginForm.password,
-    setter: (ExampleForDataStatelessWidget widget, String password) =>
-        widget.loginForm.password = password,
+  late final passwordRef = Ref(
+    getter: () => loginForm.password,
+    setter: (String password) => loginForm.password = password,
   );
 
   @override
   Widget builder(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.node(context);
 
-    var username = builder.createBuildBinding(usernameRef);
+    var username = usernameRef.$nodeOf(node);
 
     username.value;
 
-    var password = builder.createBuildBinding(passwordRef);
+    var password = passwordRef.$nodeOf(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -116,27 +114,20 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var builder = BindingBuilder(subContext);
+                  var node = Binding.node(subContext);
 
-                  var username = builder.createBuildBinding(
-                    Ref(
-                      getter: (ExampleForDataStatelessWidget widget) =>
-                          widget.loginForm.username,
-                      setter: (ExampleForDataStatelessWidget widget,
-                              String username) =>
-                          widget.loginForm.username = username,
-                    ),
-                  );
+                  var username = Ref(
+                    getter: () => loginForm.username,
+                    setter: (String username) => loginForm.username = username,
+                  ).$nodeOf(node);
 
-                  var password = builder.createBuildBinding(
-                    Ref(
-                      getter: (ExampleForDataStatelessWidget widget) =>
-                          widget.loginForm.password,
-                      setter: (ExampleForDataStatelessWidget widget,
-                              String password) =>
-                          widget.loginForm.password = password,
-                    ),
-                  );
+                  var password = Ref.fromData(
+                    getter: (ExampleForDataStatelessWidget widget) =>
+                        widget.loginForm.password,
+                    setter: (ExampleForDataStatelessWidget widget,
+                            String password) =>
+                        widget.loginForm.password = password,
+                  ).$nodeOf(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(

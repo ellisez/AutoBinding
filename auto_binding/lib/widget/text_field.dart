@@ -3,12 +3,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:auto_binding/core/dependent_manager.dart';
-import 'package:auto_binding/core/data_inject.dart';
+import 'package:auto_binding/core/inject.dart';
 
-class BindingTextField<P extends ShouldNotifyDependents, T>
-    extends StatefulWidget {
-  final Ref<P, T> ref;
+class BindingTextField<T> extends StatefulWidget {
+  final Ref<T> ref;
   final String Function(T)? valueToString;
   final T Function(String)? stringToValue;
 
@@ -208,40 +206,40 @@ class BindingTextField<P extends ShouldNotifyDependents, T>
   final SpellCheckConfiguration? spellCheckConfiguration;
 
   @override
-  State<StatefulWidget> createState() => _BindingTextFieldState<P, T>();
+  State<StatefulWidget> createState() => _BindingTextFieldState<T>();
 }
 
-class _BindingTextFieldState<P extends ShouldNotifyDependents, T> extends State<BindingTextField<P, T>> {
+class _BindingTextFieldState<T> extends State<BindingTextField<T>> {
   final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    var builder = BindingBuilder(context);
-
-    var binding = builder.createNotifierBinding(widget.ref);
+    var node = Binding.node(context);
 
     var valueToString = widget.valueToString ?? (T t) => t as String;
     var stringToValue = widget.stringToValue ?? (String text) => text as T;
 
-    var onChanged = (String text) {
-      binding.value = stringToValue(text);
-      if (widget.onChanged != null) {
-        widget.onChanged!(text);
-      }
-    };
-
-    binding.bindValueNotifier<TextEditingValue>(
-      _controller,
+    bindValueNotifier<T, TextEditingValue>(
+      node: node,
+      ref: widget.ref,
+      valueNotifier: _controller,
       covertToValue: (t) {
         var text = valueToString(t);
         return _controller.text == text
             ? _controller.value
             : _controller.value.copyWith(
-          text: text,
-        );
+                text: text,
+              );
       },
       valueCovertTo: (v) => stringToValue(v.text),
     );
+
+    var onChanged = (String text) {
+      widget.ref.$contextOf(context).value = stringToValue(text);
+      if (widget.onChanged != null) {
+        widget.onChanged!(text);
+      }
+    };
 
     return TextField(
       controller: _controller,

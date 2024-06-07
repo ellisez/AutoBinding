@@ -6,7 +6,7 @@ import 'package:auto_binding/widget/text_field.dart';
 class ExampleForModelStatelessWidget extends StatelessWidget {
   ExampleForModelStatelessWidget({super.key});
 
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
         widget.model.username = username,
@@ -18,21 +18,18 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
       model: LoginForm("", ""),
       child: Builder(
         builder: (context) {
-          var builder = BindingBuilder(context);
+          var node = Binding.node(context);
 
-          var username = builder.createBuildBinding(usernameRef);
+          var username = usernameRef.$nodeOf(node);
 
           username.value;
 
-          var password = builder.createBuildBinding(
-            Ref(
-              getter: (ModelStatelessWidget<LoginForm> widget) =>
-                  widget.model.password,
-              setter:
-                  (ModelStatelessWidget<LoginForm> widget, String password) =>
-                      widget.model.password = password,
-            ),
-          );
+          var password = Ref.fromData(
+            getter: (ModelStatelessWidget<LoginForm> widget) =>
+                widget.model.password,
+            setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
+                widget.model.password = password,
+          ).$nodeOf(node);
           debugPrint('父视图发生刷新');
           return Scaffold(
             body: Container(
@@ -56,7 +53,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
                               TextStyle(fontSize: 16, color: Colors.black38)),
                       const SizedBox(height: 30),
                       BindingTextField(
-                        usernameRef,
+                        username.ref,
                         decoration: const InputDecoration(
                           labelText: '用户名',
                           hintText: '请输入用户名',
@@ -66,13 +63,13 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
                       BindingTextField(
-                        Ref(
+                        Ref.fromData(
                           getter: (ModelStatelessWidget<LoginForm> widget) =>
                               widget.model.password,
                           setter: (ModelStatelessWidget<LoginForm> widget,
                                   String password) =>
                               widget.model.password = password,
-                        ),
+                        ).toRef(context),
                         decoration: const InputDecoration(
                           labelText: '密码',
                           hintText: '请输入密码',
@@ -130,19 +127,17 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
                       const SizedBox(height: 30),
                       Builder(builder: (subContext) {
                         debugPrint('子视图发生刷新');
-                        var builder = BindingBuilder(subContext);
+                        var node = Binding.node(subContext);
 
-                        var username = builder.createBuildBinding(usernameRef);
+                        var username = usernameRef.$nodeOf(node);
 
-                        var password = builder.createBuildBinding(
-                          Ref(
-                            getter: (ModelStatelessWidget<LoginForm> widget) =>
-                                widget.model.password,
-                            setter: (ModelStatelessWidget<LoginForm> widget,
-                                    String password) =>
-                                widget.model.password = password,
-                          ),
-                        );
+                        var password = Ref.fromData(
+                          getter: (ModelStatelessWidget<LoginForm> widget) =>
+                              widget.model.password,
+                          setter: (ModelStatelessWidget<LoginForm> widget,
+                                  String password) =>
+                              widget.model.password = password,
+                        ).$nodeOf(node);
                         return Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(

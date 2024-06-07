@@ -15,25 +15,23 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
 
   @override
   Widget builder(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.node(context);
 
-    var username = builder.createBuildBinding(
-      Ref(
-        getter: (ExampleForDataState state) => state.username,
-        setter: (ExampleForDataState state, String username) =>
-            state.username = username,
-      ),
+    var usernameRef = Ref.fromData(
+      getter: (ExampleForDataState state) => state.username,
+      setter: (ExampleForDataState state, String username) =>
+          state.username = username,
     );
+    var username = usernameRef.$nodeOf(node);
 
-    username.value;
+    //username.value;
 
-    var password = builder.createBuildBinding(
-      Ref(
-        getter: (ExampleForDataState state) => state.password,
-        setter: (ExampleForDataState state, String password) =>
-            state.password = password,
-      ),
+    var passwordRef = Ref.fromData(
+      getter: (ExampleForDataState state) => state.password,
+      setter: (ExampleForDataState state, String password) =>
+          state.password = password,
     );
+    var password = passwordRef.$nodeOf(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -56,11 +54,7 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                     style: TextStyle(fontSize: 16, color: Colors.black38)),
                 const SizedBox(height: 30),
                 BindingTextField(
-                  Ref(
-                    getter: (ExampleForDataState state) => state.username,
-                    setter: (ExampleForDataState state, String username) =>
-                        state.username = username,
-                  ),
+                  username.ref,
                   decoration: const InputDecoration(
                     labelText: '用户名',
                     hintText: '请输入用户名',
@@ -70,11 +64,7 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                 ),
                 const SizedBox(height: 20),
                 BindingTextField(
-                  Ref(
-                    getter: (ExampleForDataState state) => state.password,
-                    setter: (ExampleForDataState state, String password) =>
-                        state.password = password,
-                  ),
+                  passwordRef.toRef(context),
                   decoration: const InputDecoration(
                     labelText: '密码',
                     hintText: '请输入密码',
@@ -131,23 +121,19 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var builder = BindingBuilder(subContext);
+                  var node = Binding.node(subContext);
 
-                  var username = builder.createBuildBinding(
-                    Ref(
-                      getter: (ExampleForDataState state) => state.username,
-                      setter: (ExampleForDataState state, String username) =>
-                          state.username = username,
-                    ),
-                  );
+                  var username = Ref.fromData(
+                    getter: (ExampleForDataState state) => state.username,
+                    setter: (ExampleForDataState state, String username) =>
+                        state.username = username,
+                  ).$nodeOf(node);
 
-                  var password = builder.createBuildBinding(
-                    Ref(
-                      getter: (ExampleForDataState state) => state.password,
-                      setter: (ExampleForDataState state, String password) =>
-                          state.password = password,
-                    ),
-                  );
+                  var password = Ref.fromData(
+                    getter: (ExampleForDataState state) => state.password,
+                    setter: (ExampleForDataState state, String password) =>
+                        state.password = password,
+                  ).$nodeOf(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(

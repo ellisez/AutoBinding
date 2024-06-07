@@ -14,13 +14,13 @@ class ExampleForModelStatefulWidget extends StatefulWidget {
 
 class _DefaultState extends State<ExampleForModelStatefulWidget> {
 
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelState<LoginForm> state) => state.model.username,
     setter: (ModelState<LoginForm> state, String username) =>
     state.model.username = username,
   );
 
-  final passwordRef = Ref(
+  final passwordRef = Ref.fromData(
     getter: (ModelState<LoginForm> state) => state.model.password,
     setter: (ModelState<LoginForm> state, String password) =>
     state.model.password = password,
@@ -31,13 +31,13 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
     return ModelStatefulWidget<LoginForm>(
       model: LoginForm("", ""),
       child: Builder(builder: (context) {
-        var builder = BindingBuilder(context);
+        var node = Binding.node(context);
 
-        var username = builder.createBuildBinding(usernameRef);
+        var username = usernameRef.$nodeOf(node);
 
         username.value;
 
-        var password = builder.createBuildBinding(passwordRef);
+        var password = passwordRef.$nodeOf(node);
         debugPrint('父视图发生刷新');
         return Scaffold(
           body: Container(
@@ -59,7 +59,7 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                         style: TextStyle(fontSize: 16, color: Colors.black38)),
                     const SizedBox(height: 30),
                     BindingTextField(
-                      usernameRef,
+                      usernameRef.toRef(context),
                       decoration: const InputDecoration(
                         labelText: '用户名',
                         hintText: '请输入用户名',
@@ -69,7 +69,7 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                     ),
                     const SizedBox(height: 20),
                     BindingTextField(
-                      passwordRef,
+                      password.ref,
                       decoration: const InputDecoration(
                         labelText: '密码',
                         hintText: '请输入密码',
@@ -125,11 +125,11 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                     const SizedBox(height: 30),
                     Builder(builder: (subContext) {
                       debugPrint('子视图发生刷新');
-                      var builder = BindingBuilder(subContext);
+                      var node = Binding.node(subContext);
 
-                      var username = builder.createBuildBinding(usernameRef);
+                      var username = usernameRef.$nodeOf(node);
 
-                      var password = builder.createBuildBinding(passwordRef);
+                      var password = passwordRef.$nodeOf(node);
                       return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
