@@ -31,13 +31,13 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
     return ModelStatefulWidget<LoginForm>(
       model: LoginForm("", ""),
       child: Builder(builder: (context) {
-        var node = Binding.node(context);
+        var node = Binding.mount(context);
 
-        var username = usernameRef.$nodeOf(node);
+        var username = usernameRef(node);
 
         username.value;
 
-        var password = passwordRef.$nodeOf(node);
+        var password = passwordRef(node);
         debugPrint('父视图发生刷新');
         return Scaffold(
           body: Container(
@@ -96,8 +96,8 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                         const SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () async {
-                            username.value = '来自指定值的修改';
-                            password.value = '来自指定值的修改';
+                            username.notifyChange('来自指定值的修改');
+                            password.notifyChange('来自指定值的修改');
                           },
                           style: const ButtonStyle(
                             backgroundColor:
@@ -125,18 +125,18 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
                     const SizedBox(height: 30),
                     Builder(builder: (subContext) {
                       debugPrint('子视图发生刷新');
-                      var node = Binding.node(subContext);
+                      var node = Binding.mount(subContext);
 
-                      var username = usernameRef.$nodeOf(node);
+                      var username = usernameRef(node);
 
-                      var password = passwordRef.$nodeOf(node);
+                      var password = passwordRef(node);
                       return Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                               vertical: 4, horizontal: 10),
                           color: Colors.blueGrey,
                           child: Text(
-                            'username = ${username.value}\npassword = ${password.value}',
+                            'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
                             //style: const TextStyle(color: Colors.white),
                           ));
                     }),

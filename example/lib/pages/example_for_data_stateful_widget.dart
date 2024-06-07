@@ -15,14 +15,14 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
 
   @override
   Widget builder(BuildContext context) {
-    var node = Binding.node(context);
+    var node = Binding.mount(context);
 
     var usernameRef = Ref.fromData(
       getter: (ExampleForDataState state) => state.username,
       setter: (ExampleForDataState state, String username) =>
           state.username = username,
     );
-    var username = usernameRef.$nodeOf(node);
+    var username = usernameRef(node);
 
     //username.value;
 
@@ -31,7 +31,7 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
       setter: (ExampleForDataState state, String password) =>
           state.password = password,
     );
-    var password = passwordRef.$nodeOf(node);
+    var password = passwordRef(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -91,8 +91,8 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () async {
-                        username.value = '来自指定值的修改';
-                        password.value = '来自指定值的修改';
+                        username.notifyChange('来自指定值的修改');
+                        password.notifyChange('来自指定值的修改');
                       },
                       style: const ButtonStyle(
                         backgroundColor:
@@ -121,26 +121,26 @@ class ExampleForDataState extends DataState<ExampleForDataStatefulWidget> {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var node = Binding.node(subContext);
+                  var node = Binding.mount(subContext);
 
                   var username = Ref.fromData(
                     getter: (ExampleForDataState state) => state.username,
                     setter: (ExampleForDataState state, String username) =>
                         state.username = username,
-                  ).$nodeOf(node);
+                  )(node);
 
                   var password = Ref.fromData(
                     getter: (ExampleForDataState state) => state.password,
                     setter: (ExampleForDataState state, String password) =>
                         state.password = password,
-                  ).$nodeOf(node);
+                  )(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.value}\npassword = ${password.value}',
+                        'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

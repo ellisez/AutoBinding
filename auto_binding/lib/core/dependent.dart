@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:auto_binding/auto_binding.dart';
 import 'package:flutter/widgets.dart';
 import 'inject.dart';
 
@@ -8,39 +9,39 @@ abstract class DataProvider {
 }
 
 abstract class DependentExecutor<T> {
-  Ref<T> ref;
+  Binding<T> binding;
   T value;
 
   bool isChange() {
     var oldValue = value;
-    value = ref();
+    value = binding.value;
     return value != oldValue;
   }
 
   dispose() {}
 
-  DependentExecutor(this.ref): value = ref();
+  DependentExecutor(this.binding): value = binding.value;
 }
 
 class BuildDependentExecutor<T> extends DependentExecutor<T> {
-  ContextBinding<T> binding;
-  BuildDependentExecutor(this.binding): super(binding.ref);
+  Binding<T> binding;
+  BuildDependentExecutor(this.binding): super(binding);
 }
 
 class NotifierDependentExecutor<T> extends DependentExecutor<T> {
-  NotifierBinding<T> binding;
-  NotifierDependentExecutor(this.binding): super(binding.ref);
+  NotifierBinding<T> notifierBinding;
+  NotifierDependentExecutor(this.notifierBinding): super(notifierBinding.binding);
 
   @override
   bool isChange() {
     if (super.isChange()) {
-      binding.onChange(binding);
+      notifierBinding.onChange();
     }
     return false;
   }
 
   @override
-  dispose() => binding.dispose();
+  dispose() => notifierBinding.dispose();
 }
 
 class DependentManager extends InheritedWidget {

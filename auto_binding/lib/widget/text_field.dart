@@ -214,14 +214,14 @@ class _BindingTextFieldState<T> extends State<BindingTextField<T>> {
 
   @override
   Widget build(BuildContext context) {
-    var node = Binding.node(context);
+    var node = Binding.mount(context);
 
     var valueToString = widget.valueToString ?? (T t) => t as String;
     var stringToValue = widget.stringToValue ?? (String text) => text as T;
 
+    var binding = widget.ref(node);
     bindValueNotifier<T, TextEditingValue>(
-      node: node,
-      ref: widget.ref,
+      binding: binding,
       valueNotifier: _controller,
       covertToValue: (t) {
         var text = valueToString(t);
@@ -235,7 +235,7 @@ class _BindingTextFieldState<T> extends State<BindingTextField<T>> {
     );
 
     var onChanged = (String text) {
-      widget.ref.$contextOf(context).value = stringToValue(text);
+      binding.notifyChange(stringToValue(text));
       if (widget.onChanged != null) {
         widget.onChanged!(text);
       }

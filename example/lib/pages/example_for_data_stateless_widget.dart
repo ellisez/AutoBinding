@@ -20,13 +20,13 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 
   @override
   Widget builder(BuildContext context) {
-    var node = Binding.node(context);
+    var node = Binding.mount(context);
 
-    var username = usernameRef.$nodeOf(node);
+    var username = usernameRef(node);
 
     username.value;
 
-    var password = passwordRef.$nodeOf(node);
+    var password = passwordRef(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -114,12 +114,12 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                 const SizedBox(height: 30),
                 Builder(builder: (subContext) {
                   debugPrint('子视图发生刷新');
-                  var node = Binding.node(subContext);
+                  var node = Binding.mount(subContext);
 
                   var username = Ref(
                     getter: () => loginForm.username,
                     setter: (String username) => loginForm.username = username,
-                  ).$nodeOf(node);
+                  )(node);
 
                   var password = Ref.fromData(
                     getter: (ExampleForDataStatelessWidget widget) =>
@@ -127,14 +127,14 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     setter: (ExampleForDataStatelessWidget widget,
                             String password) =>
                         widget.loginForm.password = password,
-                  ).$nodeOf(node);
+                  )(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${username.value}\npassword = ${password.value}',
+                        'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),
