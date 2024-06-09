@@ -1,5 +1,8 @@
+import 'package:auto_binding/auto_binding.dart';
+
+@RefCodable()
 class LoginForm {
-  String username;
+  var username = '123';
   String password;
 
   Info info = Info(nickName: '', gender: 'man');
@@ -18,6 +21,7 @@ class LoginForm {
   }
 }
 
+@RefCodable()
 class Info {
   String nickName;
   String gender;

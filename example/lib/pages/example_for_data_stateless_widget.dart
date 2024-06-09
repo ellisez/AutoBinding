@@ -1,11 +1,15 @@
-import 'package:example/models/3_x.dart';
 import 'package:example/models/login_form.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
+@RefCodable()
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
-  final loginFormRef = LoginForm('', '').toRef();
+  @RefCodable()
+  final loginForm = LoginForm('', '');
+
+  @IgnoreRefCodable
+  final String abc = '123';
 
   ExampleForDataStatelessWidget();
 
@@ -13,11 +17,11 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
   Widget builder(BuildContext context) {
     var node = Binding.mount(context);
 
-    var username = loginFormRef.username(node);
+    var username = loginForm.usernameRef(node);
 
     username.value;
 
-    var password = loginFormRef.password(node);
+    var password = loginForm.passwordRef(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -77,7 +81,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     ElevatedButton(
                       onPressed: () async {
                         username.notifyChange('来自指定值的修改');
-                        loginFormRef.password.$notifyChange(node, '来自指定值的修改');
+                        loginForm.passwordRef.notifyChange(node, '来自指定值的修改');
                       },
                       style: const ButtonStyle(
                         backgroundColor:
@@ -113,7 +117,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${loginFormRef.username.$bindChange(node)}\npassword = ${password.bindChange()}',
+                        'username = ${loginForm.usernameRef.bindChange(node)}\npassword = ${password.bindChange()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),

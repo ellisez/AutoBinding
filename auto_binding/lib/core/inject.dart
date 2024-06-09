@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:auto_binding/auto_binding.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -8,31 +5,28 @@ import 'dependent.dart';
 
 /**
  * v3.x
- * var loginFormRef = loginForm.toRef(); // Map
- * var ref = loginFormRef.info.nickName;
+ * var ref = loginFormRef.info.nickNameRef;
  *
- * var nickName = loginFormRef.info.nickName.$value // get value
- * loginFormRef.info.nickName.$value = '123' // set value
+ * var nickName = ref.value // get value
+ * ref.value = '123' // set value
  *
  * var node = Binding.mount(context); // old dependentExecutor dispose
  *
  * var binding = dataRef(node) // dataRef to binding
- * var binding = loginFormRef.info.nickName(node) // ref to binding
+ * var binding = loginFormRef.info.nickNameRef(node) // ref to binding
  *
  * var nickName = binding.value // get value but no bind
  * binding.value = '123' // set value but do not update page
- *
  * binding.bindChange() // get value and add dependentExecutor
  * binding.notifyChange('123'); // set value and update page
  *
- * loginFormRef.info.nickName(node).bindChange() // get value and add dependentExecutor
- * loginFormRef.info.nickName(node).notifyChange('123'); // set value and update page
- * loginFormRef.info.nickName(node).value // get value but no bind
- * loginFormRef.info.nickName(node).value = '123'; // set value but do not update page
+ * loginFormRef.info.nickNameRef(node).bindChange() // get value and add dependentExecutor
+ * loginFormRef.info.nickNameRef(node).notifyChange('123'); // set value and update page
+ * loginFormRef.info.nickNameRef(node).value // get value but no bind
+ * loginFormRef.info.nickNameRef(node).value = '123'; // set value but do not update page
  *
- * ///
- * var nickName = loginFormRef.info.nickName.$bindChange(node: node) // get value and add dependentExecutor
- * loginFormRef.info.nickName.$notifyChange(node: node, value: '123'); // set value and update page
+ * var nickName = loginFormRef.info.nickNameRef.bindChange(node: node) // get value and add dependentExecutor
+ * loginFormRef.Info.nickNameRef.notifyChange(node: node, value: '123'); // set value and update page
  *
  * bindChangeNotifier(node: node, ref: loginFormRef.info.nickName, changeNotifier: changeNotifier, notifyListener: notifyListener, onChange: onChange);
  * bindValueNotifier(node: node, ref: loginFormRef.info.nickName, valueNotifier: valueNotifier);
@@ -66,27 +60,9 @@ class BindingNode {
   BindingNode._(this._context) {
     assert(_context.owner?.debugBuilding ?? _context.debugDoingBuild,
         'new Binding can only run during the method of build() calls.');
-    reset();
+    Binding.unmount(this);
   }
 
-  void reset() {
-    var element = _context as Element;
-    var dependentManagerElement =
-        _context.getElementForInheritedWidgetOfExactType<DependentManager>()
-            as DependentManagerElement?;
-    if (dependentManagerElement == null) {
-      throw AssertionError(
-          'No data provider found, please make sure there is a `DataState` or `DataStatelessWidget` on the WidgetTree.');
-    }
-    var dependencies = dependentManagerElement.getDependencies(element);
-    if (dependencies == null) {
-      return;
-    }
-    for (var dependentIsChange in dependencies) {
-      dependentIsChange.dispose();
-    }
-    dependentManagerElement.updateDependencies(element, null);
-  }
 }
 
 class DataRef<P extends DataProvider, T> {
@@ -108,9 +84,9 @@ class DataRef<P extends DataProvider, T> {
     );
   }
 
-  T $bindChange({required BindingNode node}) => call(node).bindChange();
+  T bindChange({required BindingNode node}) => call(node).bindChange();
 
-  void $notifyChange({required BindingNode node, required T value}) =>
+  void notifyChange({required BindingNode node, required T value}) =>
       call(node).notifyChange(value);
 
   Binding<T> call(BindingNode node) =>
@@ -127,14 +103,14 @@ class Ref<T> {
   }) =>
       DataRef._(getter: getter, setter: setter);
 
-  T $bindChange(BindingNode node) => call(node).bindChange();
+  T bindChange(BindingNode node) => call(node).bindChange();
 
-  void $notifyChange(BindingNode node, T value) =>
+  void notifyChange(BindingNode node, T value) =>
       call(node).notifyChange(value);
 
-  T get $value => _getter();
+  T get value => _getter();
 
-  set $value(T value) => _setter(value);
+  set value(T value) => _setter(value);
 
   Binding<T> call(BindingNode node) => Binding<T>._(this, node._context);
 
@@ -151,6 +127,24 @@ class Ref<T> {
 
 class Binding<T> {
   static BindingNode mount(BuildContext context) => BindingNode._(context);
+  static void unmount(BindingNode node) {
+    var element = node._context as Element;
+    var dependentManagerElement =
+    node._context.getElementForInheritedWidgetOfExactType<DependentManager>()
+    as DependentManagerElement?;
+    if (dependentManagerElement == null) {
+      throw AssertionError(
+          'No data provider found, please make sure there is a `DataState` or `DataStatelessWidget` on the WidgetTree.');
+    }
+    var dependencies = dependentManagerElement.getDependencies(element);
+    if (dependencies == null) {
+      return;
+    }
+    for (var dependentIsChange in dependencies) {
+      dependentIsChange.dispose();
+    }
+    dependentManagerElement.updateDependencies(element, null);
+  }
 
   BuildContext context;
   Ref<T> ref;
@@ -181,9 +175,9 @@ class Binding<T> {
     }
   }
 
-  T get value => ref.$value;
+  T get value => ref.value;
 
-  set value(T value) => ref.$value = value;
+  set value(T value) => ref.value = value;
 }
 
 class NotifierBinding<T> {
