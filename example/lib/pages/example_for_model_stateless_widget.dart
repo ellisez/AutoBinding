@@ -24,12 +24,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
           username.value;
 
-          var password = Ref.fromData(
-            getter: (ModelStatelessWidget<LoginForm> widget) =>
-                widget.model.password,
-            setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
-                widget.model.password = password,
-          )(node);
+          var password = ModelStatelessWidget.of<ModelStatelessWidget<LoginForm>>(context)!.model.passwordRef(node);
           debugPrint('父视图发生刷新');
           return Scaffold(
             body: Container(
@@ -131,13 +126,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
                         var username = usernameRef(node);
 
-                        var password = Ref.fromData(
-                          getter: (ModelStatelessWidget<LoginForm> widget) =>
-                              widget.model.password,
-                          setter: (ModelStatelessWidget<LoginForm> widget,
-                                  String password) =>
-                              widget.model.password = password,
-                        )(node);
+                        var password = ModelStatelessWidget.of<ModelStatelessWidget<LoginForm>>(context)!.model.passwordRef(node);
                         return Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(

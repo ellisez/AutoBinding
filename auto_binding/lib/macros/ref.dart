@@ -2,11 +2,6 @@ import 'dart:async';
 
 import 'package:macros/macros.dart';
 
-/// 1. 创建引用类
-///
-/// 2. 扫描原属性, 创建新成员成员
-///
-/// 3. 添加toRef()
 macro class RefCodable
     implements
         ClassDeclarationsMacro,
@@ -27,32 +22,44 @@ macro class RefCodable
       ];
 
   FutureOr<void> _buildFieldRef(FieldDeclaration field,
-      TypePhaseIntrospector builder, Identifier refClassName,
+      DeclarationPhaseIntrospector builder, Identifier refClassName,
       List<Object> codeParts) async {
     var sourceFieldName = field.identifier.name;
     Object sourceFieldType = field.type.code;
+
+    var dynamicType = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'dynamic');
     if (field.type is OmittedTypeAnnotation) {
       // ignore: deprecated_member_use
-      sourceFieldType = await builder.resolveIdentifier(
-          Uri.parse('dart:core'), 'dynamic');
+      sourceFieldType = dynamicType;
     }
     if (sourceFieldName.startsWith('_')) {
       return;
     }
+    // ignore: deprecated_member_use
+    var assertionError = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'AssertionError');
+    var setter = field.hasFinal
+        ? [
+      'throw ',
+      assertionError,
+      '("\'${sourceFieldName}\' can\'t be used as a setter because it\'s final.")'
+    ]
+        : ['this.${sourceFieldName} = ${sourceFieldName}'];
     var targetFieldName = '${sourceFieldName}Ref';
     var targetFieldNamedTypeParts = await _RefNamedTypeParts(
         builder, sourceFieldType);
     codeParts.addAll([
       '''
   late final ''',
-      ...targetFieldNamedTypeParts,
+      dynamicType,
       ''' _${targetFieldName} = ''',
       refClassName,
       '''(
     getter: () => ${sourceFieldName},
     setter: (''',
       sourceFieldType,
-      ''' ${sourceFieldName}) => ${sourceFieldName} = ${sourceFieldName},
+      ''' ${sourceFieldName}) => ''', ...setter, ''',
   );
 ''',
       '\n',
@@ -63,8 +70,8 @@ macro class RefCodable
     ]);
   }
 
-  bool hasClassAnnotation(ClassDeclaration clazz) {
-    for (var meta in clazz.metadata) {
+  bool hasRefCodable(Declaration decl) {
+    for (var meta in decl.metadata) {
       if (meta is ConstructorMetadataAnnotation &&
           meta.type.identifier.name == 'RefCodable') {
         return true;
@@ -73,14 +80,22 @@ macro class RefCodable
     return false;
   }
 
-  bool hasIgnoreRefCodable(FieldDeclaration field) {
-    for (var meta in field.metadata) {
+  bool hasIgnoreRefCodable(Declaration decl) {
+    for (var meta in decl.metadata) {
       if (meta is IdentifierMetadataAnnotation &&
           meta.identifier.name == 'IgnoreRefCodable') {
         return true;
       }
     }
     return false;
+  }
+
+  void reportMessageError(Builder builder, String message) {
+    builder.report(Diagnostic(DiagnosticMessage(message), Severity.error));
+  }
+
+  void reportMessageWarning(Builder builder, String message) {
+    builder.report(Diagnostic(DiagnosticMessage(message), Severity.warning));
   }
 
   @override
@@ -91,6 +106,13 @@ macro class RefCodable
     List<Object> codeParts = [];
 
     var fields = await builder.fieldsOf(clazz);
+    for (var field in fields) {
+      if (hasRefCodable(field)) {
+        reportMessageError(builder, '''There is a conflict in the annotation 'RefCodable' of member '${field.identifier.name}', it is recommended to delete it.''');
+        return;
+      }
+    }
+
     for (var field in fields) {
       if (hasIgnoreRefCodable(field)) {
         continue;
@@ -104,14 +126,12 @@ macro class RefCodable
   @override
   FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
       TypeDefinitionBuilder builder) async {
+
     Map<String, FieldDeclaration> sourceFields = {};
     Map<String, FieldDeclaration> targetFields = {};
 
     var fields = await builder.fieldsOf(clazz);
     for (var field in fields) {
-      if (hasIgnoreRefCodable(field)) {
-        continue;
-      }
       var fieldName = field.identifier.name;
       if (fieldName.startsWith('_') && fieldName.endsWith('Ref')) {
         var sourceFieldName = fieldName.substring(
@@ -124,7 +144,17 @@ macro class RefCodable
 
     for (var item in targetFields.entries) {
       var sourceField = sourceFields[item.key]!;
+      if (hasRefCodable(sourceField)) {
+        return;
+      }
+    }
+    for (var item in targetFields.entries) {
+      var sourceField = sourceFields[item.key]!;
       var targetField = item.value;
+
+      if (hasIgnoreRefCodable(sourceField)) {
+        continue;
+      }
 
       var sourceFieldType = sourceField.type;
       if (sourceFieldType is OmittedTypeAnnotation) {
@@ -135,10 +165,10 @@ macro class RefCodable
         var targetFieldName = targetField.identifier.name;
         var fieldBuilder = await builder.buildField(targetField.identifier);
         var publicFieldName = targetFieldName.substring(1);
+
         fieldBuilder.augment(getter: DeclarationCode.fromParts([
           ...targetFieldNamedTypeParts,
-          ' get ${publicFieldName} => ${targetFieldName} as ',
-          ...targetFieldNamedTypeParts,
+          ' get ${publicFieldName} => ${targetFieldName}',
           ';\n',
         ]),
         );
@@ -149,13 +179,11 @@ macro class RefCodable
   @override
   FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
       MemberDeclarationBuilder builder) async {
-    var clazz = await builder.typeDeclarationOf(
-        field.definingType) as ClassDeclaration;
-
-    if (hasClassAnnotation(clazz)) {
+    var clazz = await builder.typeDeclarationOf(field.definingType);
+    if (hasRefCodable(clazz)) {
+      reportMessageError(builder, '''There is a conflict in the annotation 'RefCodable' of member '${clazz.identifier.name}', it is recommended to delete it.''');
       return;
     }
-
     if (hasIgnoreRefCodable(field)) {
       return;
     }
@@ -172,13 +200,10 @@ macro class RefCodable
   @override
   FutureOr<void> buildDefinitionForField(FieldDeclaration field,
       VariableDefinitionBuilder builder) async {
-    var clazz = await builder.typeDeclarationOf(
-        field.definingType) as ClassDeclaration;
-
-    if (hasClassAnnotation(clazz)) {
+    var clazz = await builder.typeDeclarationOf(field.definingType);
+    if (hasRefCodable(clazz)) {
       return;
     }
-
     if (hasIgnoreRefCodable(field)) {
       return;
     }
@@ -195,8 +220,7 @@ macro class RefCodable
 
       builder.augment(getter: DeclarationCode.fromParts([
         ...targetFieldNamedTypeParts,
-        ' get ${publicFieldName} => ${targetFieldName} as ',
-        ...targetFieldNamedTypeParts,
+        ' get ${publicFieldName} => ${targetFieldName}',
         ';\n',
       ]),
       );

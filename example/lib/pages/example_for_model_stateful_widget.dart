@@ -33,7 +33,7 @@ class _DefaultState extends State<ExampleForModelStatefulWidget> {
       child: Builder(builder: (context) {
         var node = Binding.mount(context);
 
-        var username = usernameRef(node);
+        var username = ModelState.of<ModelState<LoginForm>>(context)!.model.usernameRef(node);
 
         username.value;
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
-@RefCodable()
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
   @RefCodable()
   final loginForm = LoginForm('', '');
@@ -16,7 +15,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
   @override
   Widget builder(BuildContext context) {
     var node = Binding.mount(context);
-
+    loginFormRef;
     var username = loginForm.usernameRef(node);
 
     username.value;
