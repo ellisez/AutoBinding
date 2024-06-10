@@ -9,16 +9,6 @@ class LoginForm {
 
   LoginForm(this.username, this.password);
 
-  Map<String, dynamic> toJson() => {
-    'username': username,
-    'password': password,
-  };
-
-  static LoginForm fromJson(Map<String, dynamic> json) {
-    var loginForm = LoginForm(json['username'], json['password']);
-    loginForm.info = Info.fromJson(json['password']);
-    return loginForm;
-  }
 }
 
 @RefCodable()
@@ -33,6 +23,4 @@ class Info {
     'gender': gender,
   };
 
-  static Info fromJson(Map<String, dynamic> json) =>
-      Info(nickName: json['nickname'], gender: json['gender']);
 }

@@ -1,6 +1,6 @@
 name: auto_binding
 description: AutoBinding is a lightweight MVVM bidirectional binding state management framework for data sharing and synchronization.
-version: 2.0.11
+version: 2.0.12
 homepage: 'https://github.com/ellisez/AutoBinding'
 topics:
   - mvvm

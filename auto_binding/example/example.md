@@ -114,7 +114,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 ```dart
   @override
   Widget build(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
   }
 ```
 
@@ -126,7 +126,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 
 两种绑定方式: 直接绑定, 引用绑定
 ```dart
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
       widget.model.username = username,
@@ -134,18 +134,16 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
     /// 引用绑定: 使用已定义的Ref变量
-    var username = builder.createBuildBinding(usernameRef);
+    var username = usernameRef(node);
 
     /// 直接绑定: 提供getter/setter
-    var password = builder.createBuildBinding(
-      Ref(
+    var password = Ref.fromData(
         getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
         setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
         widget.model.password = password,
-      ),
-    );
+      ).call(node);
     ...
   }
 ```
@@ -158,7 +156,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
 ```dart
 class ExampleForModelStatelessWidget extends StatelessWidget {
   
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
     widget.model.username = username,
@@ -166,20 +164,18 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
   Widget build(BuildContext context) {
     /// connecting context
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
 
-    var username = builder.createBuildBinding(usernameRef);
+    var username = usernameRef(node);
 
     /// no bind
     username.raw;
 
-    var password = builder.createBuildBinding(
-      Ref(
+    var password = Ref.fromData(
         getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
         setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
         widget.model.password = password,
-      ),
-    );
+      ).call(node);
     return Column(
       children: [
         const Text('AutoBinding example for ModelStatelessWidget.',
@@ -194,7 +190,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          usernameRef,
+          usernameRef.ref,
 
           /// 传入binding
           decoration: const InputDecoration(
@@ -208,11 +204,11 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          Ref(
+          Ref.fromData(
             getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
             setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
             widget.model.password = password,
-          ),
+          ).ref,
 
           /// 传入binding
           decoration: const InputDecoration(
@@ -228,8 +224,8 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
       ElevatedButton(
         onPressed: () async {
           /// write data, to refresh view
-          username.value = '来自指定值的修改';
-          password.value = '来自指定值的修改';
+          username.notifyChange('来自指定值的修改');
+          password.notifyChange('来自指定值的修改');
         },
         style: const ButtonStyle(
           backgroundColor:
@@ -248,17 +244,88 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
           /// binding value
           child: Text(
-            'username = ${username.value}\npassword = ${password.value}',
+            'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
           )),
     );
   }
 }
 ```
-> 范例中通过`BindingTextField`绑定到TextField输入框, 通过value绑定值到Text视图, raw不会产生绑定;
+> 范例中通过`BindingTextField`绑定到TextField输入框, 通过bindChange()绑定值到Text视图, value不会产生绑定;
 >
-> 通过`username.value = '来自指定值的修改';`赋值立刻产生页面的刷新;
+> 通过`username.notifyChange('来自指定值的修改');`赋值立刻产生页面的刷新;
 >
 > `BindingTextField`还提供了`valueToString`与`stringToValue`用于更多的格式化输入输出, 更多捆绑方式请参见[绑定控件篇]()
+
+## 使用macros生成Ref
+
+### 开启macros模式
+参见[https://dart.dev/language/macros](https://dart.dev/language/macros)
+
+启动参数`--enable-experiment=macros`
+```shell
+flutter run --enable-experiment=macros
+dart run --enable-experiment=macros
+```
+
+### 使用RefCodable注解
+```dart
+/// define annotation
+@RefCodable()
+class LoginForm {
+  var username = '123';
+  String password;
+
+  Info info = Info(nickName: '', gender: 'man');
+
+  LoginForm(this.username, this.password);
+  
+}
+
+@RefCodable()
+class Info {
+  String nickName;
+  String gender;
+
+  Info({required this.nickName, required this.gender});
+
+  Map<String, dynamic> toJson() => {
+    'nickName': nickName,
+    'gender': gender,
+  };
+
+}
+
+/// call ref
+var loginForm = LoginForm('username', 'man');
+var ref = loginForm.info.nickNameRef;
+
+var nickName = ref.value; // get value
+ref.value = '123'; // set value
+
+var node = Binding.mount(context); // old dependentExecutor dispose
+
+var binding = dataRef(node); // dataRef to binding
+var binding = loginForm.info.nickNameRef(node); // ref to binding
+
+var nickName = binding.value; // get value but no bind
+binding.value = '123'; // set value but do not update page
+binding.bindChange(); // get value and add dependentExecutor
+binding.notifyChange('123'); // set value and update page
+
+loginForm.info.nickNameRef(node).bindChange(); // get value and add dependentExecutor
+loginForm.info.nickNameRef(node).notifyChange('123'); // set value and update page
+loginForm.info.nickNameRef(node).value // get value but no bind
+loginForm.info.nickNameRef(node).value = '123'; // set value but do not update page
+
+var nickName = loginForm.info.nickNameRef.bindChange(node: node) // get value and add dependentExecutor
+loginForm.Info.nickNameRef.notifyChange(node: node, value: '123'); // set value and update page
+
+bindChangeNotifier(node: node, ref: loginForm.info.nickName, changeNotifier: changeNotifier, notifyListener: notifyListener, onChange: onChange);
+bindValueNotifier(node: node, ref: loginForm.info.nickName, valueNotifier: valueNotifier);
+```
+> `@RefCodable()`可定义在`class`或`field`, 被标注的类或属性会自动生成对应的引用属性.
+>
+> 引用属性名, 为字段名加后缀`Ref`, 如`nickName`的引用属性是`nickNameRef`.
 
 ## AutoBinding优势
 

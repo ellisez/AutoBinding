@@ -132,7 +132,7 @@ Create a Builder through context
 ```dart
   @override
   Widget build(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
   }
 ```
 
@@ -144,7 +144,7 @@ Create a Builder through context
 
 Two binding methods: direct binding and reference binding
 ```dart
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
       widget.model.username = username,
@@ -152,18 +152,16 @@ Two binding methods: direct binding and reference binding
 
   @override
   Widget build(BuildContext context) {
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
     /// Reference binding: using defined Ref variables
-    var username = builder.createBuildBinding(usernameRef);
+    var username = usernameRef(node);
 
     /// Direct binding: provide getter/setter
-    var password = builder.createBuildBinding(
-      Ref(
+    var password = Ref.fromData(
         getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
         setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
         widget.model.password = password,
-      ),
-    );
+      ).call(node);
     ...
   }
 ```
@@ -176,7 +174,7 @@ Fill a WidgetTree with binding
 ```dart
 class ExampleForModelStatelessWidget extends StatelessWidget {
   
-  final usernameRef = Ref(
+  final usernameRef = Ref.fromData(
     getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.username,
     setter: (ModelStatelessWidget<LoginForm> widget, String username) =>
     widget.model.username = username,
@@ -184,20 +182,18 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
   Widget build(BuildContext context) {
     /// connecting context
-    var builder = BindingBuilder(context);
+    var node = Binding.mount(context);
 
-    var username = builder.createBuildBinding(usernameRef);
+    var username = usernameRef(node);
 
     /// no bind
     username.raw;
 
-    var password = builder.createBuildBinding(
-      Ref(
+    var password = Ref.fromData(
         getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
         setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
         widget.model.password = password,
-      ),
-    );
+      ).(node);
     return Column(
       children: [
         const Text('AutoBinding example for ModelStatelessWidget.',
@@ -212,7 +208,7 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          usernameRef,
+          usernameRef.ref,
 
           /// 传入binding
           decoration: const InputDecoration(
@@ -226,11 +222,11 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
         /// binding TextField
         BindingTextField(
-          Ref(
+          Ref.fromData(
             getter: (ModelStatelessWidget<LoginForm> widget) => widget.model.password,
             setter: (ModelStatelessWidget<LoginForm> widget, String password) =>
             widget.model.password = password,
-          ),
+          ).ref,
 
           /// 传入binding
           decoration: const InputDecoration(
@@ -246,8 +242,8 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
       ElevatedButton(
         onPressed: () async {
           /// write data, to refresh view
-          username.value = '来自指定值的修改';
-          password.value = '来自指定值的修改';
+          username.notifyChange('来自指定值的修改');
+          password.notifyChange('来自指定值的修改');
         },
         style: const ButtonStyle(
           backgroundColor:
@@ -266,19 +262,91 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 
           /// binding value
           child: Text(
-            'username = ${username.value}\npassword = ${password.value}',
+            'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
           )),
     );
   }
 }
 ```
-> In the example, bind to the TextField input box through `BindingTextField`, and bind the value to the Text view through `value`. `raw` will not generate binding;
+> In the example, bind to the TextField input box through `BindingTextField`, and bind the value to the Text view through `bindChange()`. `value` will not generate binding;
 >
-> Modify from specified value through `username.value = '来自指定值的修改'` Assign values to immediately generate page
+> Modify from specified value through `username.notifyChange('来自指定值的修改');` Assign values to immediately generate page
 > refresh;
 >
 > `BindingTextField` also provides `valueToString` and `stringToValue` for more formatted input and output. For more
 > bundling methods, please refer to the [Bind Control section]().
+
+## Generate Ref using macros
+
+### Enable macro mode
+see [https://dart.dev/language/macros](https://dart.dev/language/macros)
+
+Startup Parameters ` -- enable experiment=macros`
+```shell
+flutter run --enable-experiment=macros
+dart run --enable-experiment=macros
+```
+
+### Using RefCodeable annotations
+```dart
+/// define annotation
+@RefCodable()
+class LoginForm {
+  var username = '123';
+  String password;
+
+  Info info = Info(nickName: '', gender: 'man');
+
+  LoginForm(this.username, this.password);
+  
+}
+
+@RefCodable()
+class Info {
+  String nickName;
+  String gender;
+
+  Info({required this.nickName, required this.gender});
+
+  Map<String, dynamic> toJson() => {
+    'nickName': nickName,
+    'gender': gender,
+  };
+
+}
+
+/// call ref
+var loginForm = LoginForm('username', 'man');
+var ref = loginForm.info.nickNameRef;
+
+var nickName = ref.value; // get value
+ref.value = '123'; // set value
+
+var node = Binding.mount(context); // old dependentExecutor dispose
+
+var binding = dataRef(node); // dataRef to binding
+var binding = loginForm.info.nickNameRef(node); // ref to binding
+
+var nickName = binding.value; // get value but no bind
+binding.value = '123'; // set value but do not update page
+binding.bindChange(); // get value and add dependentExecutor
+binding.notifyChange('123'); // set value and update page
+
+loginForm.info.nickNameRef(node).bindChange(); // get value and add dependentExecutor
+loginForm.info.nickNameRef(node).notifyChange('123'); // set value and update page
+loginForm.info.nickNameRef(node).value // get value but no bind
+loginForm.info.nickNameRef(node).value = '123'; // set value but do not update page
+
+var nickName = loginForm.info.nickNameRef.bindChange(node: node) // get value and add dependentExecutor
+loginForm.Info.nickNameRef.notifyChange(node: node, value: '123'); // set value and update page
+
+bindChangeNotifier(node: node, ref: loginForm.info.nickName, changeNotifier: changeNotifier, notifyListener: notifyListener, onChange: onChange);
+bindValueNotifier(node: node, ref: loginForm.info.nickName, valueNotifier: valueNotifier);
+```
+> `@RefCodable()`can be defined in either `class` or `field`, and the annotated class or property will automatically generate corresponding reference properties.
+>
+> Reference attribute name, add the suffix `Ref` to the field name, for example, the reference attribute of `nickNameRef` is `nickNameRef`.
+
 
 ## AutoBinding advantages
 

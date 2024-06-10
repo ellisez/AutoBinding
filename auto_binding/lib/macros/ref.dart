@@ -27,10 +27,10 @@ macro class RefCodable
     var sourceFieldName = field.identifier.name;
     Object sourceFieldType = field.type.code;
 
+    // ignore: deprecated_member_use
     var dynamicType = await builder.resolveIdentifier(
         Uri.parse('dart:core'), 'dynamic');
     if (field.type is OmittedTypeAnnotation) {
-      // ignore: deprecated_member_use
       sourceFieldType = dynamicType;
     }
     if (sourceFieldName.startsWith('_')) {

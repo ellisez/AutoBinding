@@ -92,3 +92,6 @@
 ## 2.0.11
 - fix bug: Notifier unbind.
 - add BindingBuild.watch().
+
+## 2.0.12
+- use macros annotation.
