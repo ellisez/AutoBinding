@@ -261,6 +261,13 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 ### 开启macros模式
 参见[https://dart.dev/language/macros](https://dart.dev/language/macros)
 
+配置sdk版本, 3.5.0-152以上
+```yaml
+# pubspec.yaml
+environment:
+  sdk: '>=3.5.0-152 <4.0.0'
+```
+
 启动参数`--enable-experiment=macros`
 ```shell
 flutter run --enable-experiment=macros
