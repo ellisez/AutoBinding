@@ -1,4 +1,4 @@
-import 'package:auto_binding/auto_binding.dart';
+import '../macros/auto_binding.dart';
 
 @RefCodable()
 class LoginForm {

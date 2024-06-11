@@ -281,18 +281,45 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 ### Enable macro mode
 see [https://dart.dev/language/macros](https://dart.dev/language/macros)
 
-Configure SDK version, 3.5.0-152 or above
+#### 1. Configure SDK version, 3.5.0-152 or above
 ```yaml
 # pubspec.yaml
 environment:
   sdk: '>=3.5.0-152 <4.0.0'
 ```
 
-Startup Parameters ` -- enable experiment=macros`
+#### 2. Startup Parameters ` -- enable experiment=macros`
 ```shell
 flutter run --enable-experiment=macros
 dart run --enable-experiment=macros
 ```
+#### 3. 编写本地宏
+
+Due to the fact that `macros` is still in the experimental stage, cross package parsing of `Dart Analysis Server` syntax is currently not supported.
+
+This will result in newly added libraries, types, properties, and methods of macro not being recognized by static analysis, leading to missing definition errors. But it is correct at runtime.
+
+Therefore, it is necessary to declare the macros of the external package again within this package, as follows:
+```dart
+// lib/macros/auto_binding.dart
+import 'package:auto_binding/auto_binding.dart' as auto_binding;
+
+macro class RefCodable extends auto_binding.RefCodable {
+  const RefCodable();
+}
+
+macro class IgnoreRefCodable extends auto_binding.IgnoreRefCodable {
+  const IgnoreRefCodable();
+}
+```
+
+The general reason for not being able to cross packages is that `Dart Analysis Server` static analysis cannot only focus on source code analysis, but also needs to derive `information/warning/error` based on the `analysis-options.yaml` rule. 
+Cross package analysis requires reanalysis of each package,
+At present, the `Dart Analysis Server` is only a single rule, and each package has its own analysis service enabled. The performance loss is too great, and the communication delay will also increase,
+So Dart officials still need to redesign in terms of performance and functionality.
+
+This is an official discussion: [https://github.com/dart-lang/sdk/issues/55688](https://github.com/dart-lang/sdk/issues/55688)
+
 
 ### Using RefCodeable annotations
 ```dart

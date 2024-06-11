@@ -261,18 +261,45 @@ class ExampleForModelStatelessWidget extends StatelessWidget {
 ### 开启macros模式
 参见[https://dart.dev/language/macros](https://dart.dev/language/macros)
 
-配置sdk版本, 3.5.0-152以上
+#### 1. 配置sdk版本, 3.5.0-152以上
 ```yaml
 # pubspec.yaml
 environment:
   sdk: '>=3.5.0-152 <4.0.0'
 ```
 
-启动参数`--enable-experiment=macros`
+#### 2. 启动参数`--enable-experiment=macros`
 ```shell
 flutter run --enable-experiment=macros
 dart run --enable-experiment=macros
 ```
+
+#### 3. 编写本地宏
+
+由于`macros`仍处于实验阶段，暂时无法支持跨包的`Dart Analysis Server`语法解析。
+
+这会导致macro新加入的库、类型、属性和方法均不能被静态分析所识别，会造成缺少定义错误。但运行时是正确的。
+
+因此需要将外部包的宏，从新在本包内再次声明一次，具体如下：
+```dart
+// lib/macros/auto_binding.dart
+import 'package:auto_binding/auto_binding.dart' as auto_binding;
+
+macro class RefCodable extends auto_binding.RefCodable {
+  const RefCodable();
+}
+
+macro class IgnoreRefCodable extends auto_binding.IgnoreRefCodable {
+  const IgnoreRefCodable();
+}
+```
+
+不能跨包的大致原因是`Dart Analysis Server`静态分析并不能只是对着源码分析，而是需要根据`analysis_options.yaml`规则得出`info/warning/error`，跨包就需要对每个包都进行重新分析，
+而`Dart Analysis Server`目前仅仅是单一规则的，每个包都各自开启一个分析服务性能损失太大，通信的延时也会加重，
+所以dart官方还需要从性能和功能上重新进行设计。
+
+这是官方相关讨论[https://github.com/dart-lang/sdk/issues/55688](https://github.com/dart-lang/sdk/issues/55688)
+
 
 ### 使用RefCodable注解
 ```dart

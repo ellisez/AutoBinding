@@ -36,8 +36,8 @@ abstract class DataState<T extends StatefulWidget> extends State<T>
 
   Widget _build(BuildContext context) {
     _child ??= Builder(
-          builder: builder,
-      );
+      builder: builder,
+    );
     return _child!;
   }
 
@@ -96,7 +96,7 @@ class _ChildState extends State<_ChildWidget> {
 
 abstract class DataStatelessWidget extends StatelessWidget
     implements DataProvider {
-  DataStatelessWidget() : super(key: GlobalKey());
+  DataStatelessWidget({GlobalKey? key}) : super(key: key ?? GlobalKey());
 
   static T? of<T extends DataStatelessWidget>(BuildContext context) {
     return context.findAncestorWidgetOfExactType<T>();

@@ -82,8 +82,8 @@ macro class RefCodable
 
   bool hasIgnoreRefCodable(Declaration decl) {
     for (var meta in decl.metadata) {
-      if (meta is IdentifierMetadataAnnotation &&
-          meta.identifier.name == 'IgnoreRefCodable') {
+      if (meta is ConstructorMetadataAnnotation &&
+          meta.type.identifier.name == 'IgnoreRefCodable') {
         return true;
       }
     }
@@ -108,7 +108,9 @@ macro class RefCodable
     var fields = await builder.fieldsOf(clazz);
     for (var field in fields) {
       if (hasRefCodable(field)) {
-        reportMessageError(builder, '''There is a conflict in the annotation 'RefCodable' of member '${field.identifier.name}', it is recommended to delete it.''');
+        reportMessageError(builder,
+            '''There is a conflict in the annotation 'RefCodable' of member '${field
+                .identifier.name}', it is recommended to delete it.''');
         return;
       }
     }
@@ -126,7 +128,6 @@ macro class RefCodable
   @override
   FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
       TypeDefinitionBuilder builder) async {
-
     Map<String, FieldDeclaration> sourceFields = {};
     Map<String, FieldDeclaration> targetFields = {};
 
@@ -181,7 +182,9 @@ macro class RefCodable
       MemberDeclarationBuilder builder) async {
     var clazz = await builder.typeDeclarationOf(field.definingType);
     if (hasRefCodable(clazz)) {
-      reportMessageError(builder, '''There is a conflict in the annotation 'RefCodable' of member '${clazz.identifier.name}', it is recommended to delete it.''');
+      reportMessageError(builder,
+          '''There is a conflict in the annotation 'RefCodable' of member '${clazz
+              .identifier.name}', it is recommended to delete it.''');
       return;
     }
     if (hasIgnoreRefCodable(field)) {
@@ -230,4 +233,11 @@ macro class RefCodable
 
 }
 
-const Object IgnoreRefCodable = Null;
+macro class IgnoreRefCodable implements FieldTypesMacro {
+  const IgnoreRefCodable();
+
+  @override
+  FutureOr<void> buildTypesForField(FieldDeclaration field,
+      TypeBuilder builder) {
+  }
+}

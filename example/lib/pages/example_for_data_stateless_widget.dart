@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
+import '../macros/auto_binding.dart';
+
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
   @RefCodable()
   final loginForm = LoginForm('', '');
 
-  @IgnoreRefCodable
+  @IgnoreRefCodable()
   final String abc = '123';
 
-  ExampleForDataStatelessWidget();
+  ExampleForDataStatelessWidget({super.key});
 
   @override
   Widget builder(BuildContext context) {

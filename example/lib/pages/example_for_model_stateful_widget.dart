@@ -4,7 +4,7 @@ import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
 class ExampleForModelStatefulWidget extends StatefulWidget {
-  const ExampleForModelStatefulWidget({Key? key}) : super(key: key);
+  const ExampleForModelStatefulWidget({super.key});
 
   @override
   State<StatefulWidget> createState() {
