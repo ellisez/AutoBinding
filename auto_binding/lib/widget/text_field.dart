@@ -234,12 +234,12 @@ class _BindingTextFieldState<T> extends State<BindingTextField<T>> {
       valueCovertTo: (v) => stringToValue(v.text),
     );
 
-    var onChanged = (String text) {
+    onChanged(String text) {
       binding.notifyChange(stringToValue(text));
       if (widget.onChanged != null) {
         widget.onChanged!(text);
       }
-    };
+    }
 
     return TextField(
       controller: _controller,

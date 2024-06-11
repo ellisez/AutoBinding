@@ -3,36 +3,34 @@ import 'package:flutter/material.dart';
 
 import 'dependent.dart';
 
-/**
- * v3.x
- * var ref = loginFormRef.info.nickNameRef;
- *
- * var nickName = ref.value // get value
- * ref.value = '123' // set value
- *
- * var node = Binding.mount(context); // old dependentExecutor dispose
- *
- * var binding = dataRef(node) // dataRef to binding
- * var binding = loginFormRef.info.nickNameRef(node) // ref to binding
- *
- * var nickName = binding.value // get value but no bind
- * binding.value = '123' // set value but do not update page
- * binding.bindChange() // get value and add dependentExecutor
- * binding.notifyChange('123'); // set value and update page
- *
- * loginFormRef.info.nickNameRef(node).bindChange() // get value and add dependentExecutor
- * loginFormRef.info.nickNameRef(node).notifyChange('123'); // set value and update page
- * loginFormRef.info.nickNameRef(node).value // get value but no bind
- * loginFormRef.info.nickNameRef(node).value = '123'; // set value but do not update page
- *
- * var nickName = loginFormRef.info.nickNameRef.bindChange(node: node) // get value and add dependentExecutor
- * loginFormRef.Info.nickNameRef.notifyChange(node: node, value: '123'); // set value and update page
- *
- * bindChangeNotifier(node: node, ref: loginFormRef.info.nickName, changeNotifier: changeNotifier, notifyListener: notifyListener, onChange: onChange);
- * bindValueNotifier(node: node, ref: loginFormRef.info.nickName, valueNotifier: valueNotifier);
- */
+/// v3.x
+/// var ref = loginFormRef.info.nickNameRef;
+///
+/// var nickName = ref.value // get value
+/// ref.value = '123' // set value
+///
+/// var node = Binding.mount(context); // old dependentExecutor dispose
+///
+/// var binding = dataRef(node) // dataRef to binding
+/// var binding = loginFormRef.info.nickNameRef(node) // ref to binding
+///
+/// var nickName = binding.value // get value but no bind
+/// binding.value = '123' // set value but do not update page
+/// binding.bindChange() // get value and add dependentExecutor
+/// binding.notifyChange('123'); // set value and update page
+///
+/// loginFormRef.info.nickNameRef(node).bindChange() // get value and add dependentExecutor
+/// loginFormRef.info.nickNameRef(node).notifyChange('123'); // set value and update page
+/// loginFormRef.info.nickNameRef(node).value // get value but no bind
+/// loginFormRef.info.nickNameRef(node).value = '123'; // set value but do not update page
+///
+/// var nickName = loginFormRef.info.nickNameRef.bindChange(node: node) // get value and add dependentExecutor
+/// loginFormRef.Info.nickNameRef.notifyChange(node: node, value: '123'); // set value and update page
+///
+/// bindChangeNotifier(node: node, ref: loginFormRef.info.nickName, changeNotifier: changeNotifier, notifyListener: notifyListener, onChange: onChange);
+/// bindValueNotifier(node: node, ref: loginFormRef.info.nickName, valueNotifier: valueNotifier);
 P? findProvider<P extends DataProvider>(BuildContext context) {
-  var tryProvider = (element) {
+  tryProvider(element) {
     if (element is ComponentElement) {
       if (element is StatefulElement && element.state is P) {
         return element.state as P;
@@ -41,7 +39,7 @@ P? findProvider<P extends DataProvider>(BuildContext context) {
       }
     }
     return null;
-  };
+  }
 
   P? provider;
   context.visitAncestorElements((ancestor) {
@@ -62,12 +60,11 @@ class BindingNode {
         'new Binding can only run during the method of build() calls.');
     Binding.unmount(this);
   }
-
 }
 
 class DataRef<P extends DataProvider, T> {
-  T Function(P) _getter;
-  void Function(P, T) _setter;
+  final T Function(P) _getter;
+  final void Function(P, T) _setter;
 
   DataRef._(
       {required T Function(P) getter, required void Function(P, T) setter})
@@ -127,11 +124,12 @@ class Ref<T> {
 
 class Binding<T> {
   static BindingNode mount(BuildContext context) => BindingNode._(context);
+
   static void unmount(BindingNode node) {
     var element = node._context as Element;
-    var dependentManagerElement =
-    node._context.getElementForInheritedWidgetOfExactType<DependentManager>()
-    as DependentManagerElement?;
+    var dependentManagerElement = node._context
+            .getElementForInheritedWidgetOfExactType<DependentManager>()
+        as DependentManagerElement?;
     if (dependentManagerElement == null) {
       throw AssertionError(
           'No data provider found, please make sure there is a `DataState` or `DataStatelessWidget` on the WidgetTree.');
@@ -224,12 +222,8 @@ NotifierBinding<T> bindValueNotifier<T, V>({
   V Function(T)? covertToValue,
   T Function(V)? valueCovertTo,
 }) {
-  if (covertToValue == null) {
-    covertToValue = (T t) => t as V;
-  }
-  if (valueCovertTo == null) {
-    valueCovertTo = (V v) => v as T;
-  }
+  covertToValue ??= (T t) => t as V;
+  valueCovertTo ??= (V v) => v as T;
 
   return bindChangeNotifier<T>(
     binding: binding,
@@ -241,7 +235,11 @@ NotifierBinding<T> bindValueNotifier<T, V>({
       }
     },
     onChange: () {
-      valueNotifier.value = covertToValue!(binding.value);
+      try {
+        valueNotifier.value = covertToValue!(binding.value);
+      } catch(e) {
+        //
+      }
     },
   );
 }

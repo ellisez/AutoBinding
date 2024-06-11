@@ -18,9 +18,4 @@ class Info {
 
   Info({required this.nickName, required this.gender});
 
-  Map<String, dynamic> toJson() => {
-    'nickName': nickName,
-    'gender': gender,
-  };
-
 }

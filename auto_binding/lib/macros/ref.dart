@@ -10,15 +10,15 @@ macro class RefCodable
         FieldDefinitionMacro {
   const RefCodable();
 
-  Future<Identifier> _RefIdentifier(TypePhaseIntrospector builder) =>
+  Future<Identifier> _refIdentifier(TypePhaseIntrospector builder) =>
       // ignore: deprecated_member_use
   builder.resolveIdentifier(
       Uri.parse('package:auto_binding/core/inject.dart'), 'Ref');
 
-  FutureOr<List<Object>> _RefNamedTypeParts(TypePhaseIntrospector builder,
+  FutureOr<List<Object>> _refNamedTypeParts(TypePhaseIntrospector builder,
       Object namedType) async =>
       [
-        await _RefIdentifier(builder), '<', namedType, '>',
+        await _refIdentifier(builder), '<', namedType, '>',
       ];
 
   FutureOr<void> _buildFieldRef(FieldDeclaration field,
@@ -43,29 +43,29 @@ macro class RefCodable
         ? [
       'throw ',
       assertionError,
-      '("\'${sourceFieldName}\' can\'t be used as a setter because it\'s final.")'
+      '("\'$sourceFieldName\' can\'t be used as a setter because it\'s final.")'
     ]
-        : ['this.${sourceFieldName} = ${sourceFieldName}'];
+        : ['this.$sourceFieldName = $sourceFieldName'];
     var targetFieldName = '${sourceFieldName}Ref';
-    var targetFieldNamedTypeParts = await _RefNamedTypeParts(
+    var targetFieldNamedTypeParts = await _refNamedTypeParts(
         builder, sourceFieldType);
     codeParts.addAll([
       '''
   late final ''',
       dynamicType,
-      ''' _${targetFieldName} = ''',
+      ''' _$targetFieldName = ''',
       refClassName,
       '''(
-    getter: () => ${sourceFieldName},
+    getter: () => $sourceFieldName,
     setter: (''',
       sourceFieldType,
-      ''' ${sourceFieldName}) => ''', ...setter, ''',
+      ''' $sourceFieldName) => ''', ...setter, ''',
   );
 ''',
       '\n',
       '  ',
       ...targetFieldNamedTypeParts,
-      ' get ${targetFieldName} => _${targetFieldName};',
+      ' get $targetFieldName => _$targetFieldName;',
       '\n\n',
     ]);
   }
@@ -101,7 +101,7 @@ macro class RefCodable
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) async {
-    var refClassName = await _RefIdentifier(builder);
+    var refClassName = await _refIdentifier(builder);
 
     List<Object> codeParts = [];
 
@@ -159,7 +159,7 @@ macro class RefCodable
       var sourceFieldType = sourceField.type;
       if (sourceFieldType is OmittedTypeAnnotation) {
         sourceFieldType = await builder.inferType(sourceFieldType);
-        var targetFieldNamedTypeParts = await _RefNamedTypeParts(
+        var targetFieldNamedTypeParts = await _refNamedTypeParts(
             builder, sourceFieldType.code);
 
         var targetFieldName = targetField.identifier.name;
@@ -168,7 +168,7 @@ macro class RefCodable
 
         fieldBuilder.augment(getter: DeclarationCode.fromParts([
           ...targetFieldNamedTypeParts,
-          ' get ${publicFieldName} => ${targetFieldName}',
+          ' get $publicFieldName => $targetFieldName',
           ';\n',
         ]),
         );
@@ -188,7 +188,7 @@ macro class RefCodable
       return;
     }
 
-    var refClassName = await _RefIdentifier(builder);
+    var refClassName = await _refIdentifier(builder);
 
     List<Object> codeParts = [];
 
@@ -213,14 +213,14 @@ macro class RefCodable
           field.type as OmittedTypeAnnotation);
       var sourceFieldName = field.identifier.name;
       var publicFieldName = '${sourceFieldName}Ref';
-      var targetFieldName = '_${publicFieldName}';
+      var targetFieldName = '_$publicFieldName';
 
-      var targetFieldNamedTypeParts = await _RefNamedTypeParts(
+      var targetFieldNamedTypeParts = await _refNamedTypeParts(
           builder, sourceFieldType.code);
 
       builder.augment(getter: DeclarationCode.fromParts([
         ...targetFieldNamedTypeParts,
-        ' get ${publicFieldName} => ${targetFieldName}',
+        ' get $publicFieldName => $targetFieldName',
         ';\n',
       ]),
       );

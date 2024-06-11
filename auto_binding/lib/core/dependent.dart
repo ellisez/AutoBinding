@@ -24,8 +24,8 @@ abstract class DependentExecutor<T> {
 }
 
 class BuildDependentExecutor<T> extends DependentExecutor<T> {
-  Binding<T> binding;
-  BuildDependentExecutor(this.binding): super(binding);
+
+  BuildDependentExecutor(super.binding);
 }
 
 class NotifierDependentExecutor<T> extends DependentExecutor<T> {
@@ -83,6 +83,7 @@ class DependentManagerElement extends InheritedElement {
     }
   }
 
+  @override
   @protected
   void notifyDependent(covariant InheritedWidget oldWidget, Element dependent) {
     final Set<DependentExecutor>? dependencies = getDependencies(dependent);

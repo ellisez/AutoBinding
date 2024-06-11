@@ -27,6 +27,7 @@ abstract class DataState<T extends StatefulWidget> extends State<T>
     return context.findAncestorStateOfType<T>();
   }
 
+  @override
   void notifyDependents() {
     setState(() {});
   }
@@ -34,11 +35,9 @@ abstract class DataState<T extends StatefulWidget> extends State<T>
   Widget builder(BuildContext context);
 
   Widget _build(BuildContext context) {
-    if (_child == null) {
-      _child = Builder(
+    _child ??= Builder(
           builder: builder,
       );
-    }
     return _child!;
   }
 
@@ -87,9 +86,7 @@ class _ChildState extends State<_ChildWidget> {
   Widget? _child;
 
   Widget _build(BuildContext context) {
-    if (_child == null) {
-      _child = widget.child;
-    }
+    _child ??= widget.child;
     return _child!;
   }
 
@@ -105,8 +102,9 @@ abstract class DataStatelessWidget extends StatelessWidget
     return context.findAncestorWidgetOfExactType<T>();
   }
 
+  @override
   void notifyDependents() {
-    var globalKey = this.key as GlobalKey;
+    var globalKey = key as GlobalKey;
     (globalKey.currentContext as StatelessElement).markNeedsBuild();
   }
 
