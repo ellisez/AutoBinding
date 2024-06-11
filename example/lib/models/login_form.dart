@@ -2,7 +2,7 @@ import '../macros/auto_binding.dart';
 
 @RefCodable()
 class LoginForm {
-  var username = '123';
+  String username = '123';
   String password;
 
   Info info = Info(nickName: '', gender: 'man');

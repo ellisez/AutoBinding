@@ -7,7 +7,7 @@ import '../macros/auto_binding.dart';
 
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
   @RefCodable()
-  final loginForm = LoginForm('', '');
+  final LoginForm loginForm = LoginForm('', '');
 
   @IgnoreRefCodable()
   final String abc = '123';

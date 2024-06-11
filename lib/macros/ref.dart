@@ -1,19 +1,18 @@
-import 'dart:async';
+// ignore_for_file: deprecated_member_use
 
+import 'dart:async';
 import 'package:macros/macros.dart';
 
+var _refUri = Uri.parse('package:auto_binding/core/inject.dart');
+var _dartCoreUri = Uri.parse('dart:core');
+
 macro class RefCodable
-    implements
-        ClassDeclarationsMacro,
-        ClassDefinitionMacro,
-        FieldDeclarationsMacro,
-        FieldDefinitionMacro {
+    implements ClassDeclarationsMacro, FieldDeclarationsMacro {
   const RefCodable();
 
   Future<Identifier> _refIdentifier(TypePhaseIntrospector builder) =>
-      // ignore: deprecated_member_use
-  builder.resolveIdentifier(
-      Uri.parse('package:auto_binding/core/inject.dart'), 'Ref');
+
+      builder.resolveIdentifier(_refUri, 'Ref');
 
   FutureOr<List<Object>> _refNamedTypeParts(TypePhaseIntrospector builder,
       Object namedType) async =>
@@ -22,23 +21,24 @@ macro class RefCodable
       ];
 
   FutureOr<void> _buildFieldRef(FieldDeclaration field,
-      DeclarationPhaseIntrospector builder, Identifier refClassName,
+      DeclarationBuilder builder, Identifier refClassName,
       List<Object> codeParts) async {
-    var sourceFieldName = field.identifier.name;
-    Object sourceFieldType = field.type.code;
-
-    // ignore: deprecated_member_use
-    var dynamicType = await builder.resolveIdentifier(
-        Uri.parse('dart:core'), 'dynamic');
     if (field.type is OmittedTypeAnnotation) {
-      sourceFieldType = dynamicType;
+      reportError(builder,
+          'Only fields with explicit types are allowed on serializable classes.',
+          correctionMessage: 'Please add a type',
+          target: field.asDiagnosticTarget);
+      return;
     }
+
+    var sourceFieldName = field.identifier.name;
+    var sourceFieldType = field.type.code;
     if (sourceFieldName.startsWith('_')) {
       return;
     }
-    // ignore: deprecated_member_use
+
     var assertionError = await builder.resolveIdentifier(
-        Uri.parse('dart:core'), 'AssertionError');
+        _dartCoreUri, 'AssertionError');
     var setter = field.hasFinal
         ? [
       'throw ',
@@ -52,21 +52,18 @@ macro class RefCodable
     codeParts.addAll([
       '''
   late final ''',
-      dynamicType,
-      ''' _$targetFieldName = ''',
+      ...targetFieldNamedTypeParts,
+      ''' $targetFieldName = ''',
       refClassName,
       '''(
     getter: () => $sourceFieldName,
     setter: (''',
       sourceFieldType,
-      ''' $sourceFieldName) => ''', ...setter, ''',
+      ''' $sourceFieldName) => ''',
+      ...setter,
+      ''',
   );
 ''',
-      '\n',
-      '  ',
-      ...targetFieldNamedTypeParts,
-      ' get $targetFieldName => _$targetFieldName;',
-      '\n\n',
     ]);
   }
 
@@ -90,12 +87,24 @@ macro class RefCodable
     return false;
   }
 
-  void reportMessageError(Builder builder, String message) {
-    builder.report(Diagnostic(DiagnosticMessage(message), Severity.error));
+  void reportError(Builder builder, String message,
+      {DiagnosticTarget? target, String? correctionMessage, List<
+          DiagnosticMessage>? contextMessages}) {
+    builder.report(
+        Diagnostic(DiagnosticMessage(message, target: target), Severity.error,
+          correctionMessage: correctionMessage,
+          contextMessages: contextMessages ?? [],
+        ));
   }
 
-  void reportMessageWarning(Builder builder, String message) {
-    builder.report(Diagnostic(DiagnosticMessage(message), Severity.warning));
+  void reportWarning(Builder builder, String message,
+      {DiagnosticTarget? target, String? correctionMessage, List<
+          DiagnosticMessage>? contextMessages}) {
+    builder.report(Diagnostic(
+      DiagnosticMessage(message, target: target), Severity.warning,
+      correctionMessage: correctionMessage,
+      contextMessages: contextMessages ?? [],
+    ));
   }
 
   @override
@@ -108,9 +117,10 @@ macro class RefCodable
     var fields = await builder.fieldsOf(clazz);
     for (var field in fields) {
       if (hasRefCodable(field)) {
-        reportMessageError(builder,
-            '''There is a conflict in the annotation 'RefCodable' of member '${field
-                .identifier.name}', it is recommended to delete it.''');
+        reportError(builder,
+            '''There is a conflict with the annotation 'RefCodable' of member '${field
+                .identifier.name}\'''',
+            correctionMessage: 'Please delete itself.');
         return;
       }
     }
@@ -126,65 +136,10 @@ macro class RefCodable
   }
 
   @override
-  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
-      TypeDefinitionBuilder builder) async {
-    Map<String, FieldDeclaration> sourceFields = {};
-    Map<String, FieldDeclaration> targetFields = {};
-
-    var fields = await builder.fieldsOf(clazz);
-    for (var field in fields) {
-      var fieldName = field.identifier.name;
-      if (fieldName.startsWith('_') && fieldName.endsWith('Ref')) {
-        var sourceFieldName = fieldName.substring(
-            1, fieldName.length - 'Ref'.length);
-        targetFields[sourceFieldName] = field;
-      } else {
-        sourceFields[fieldName] = field;
-      }
-    }
-
-    for (var item in targetFields.entries) {
-      var sourceField = sourceFields[item.key]!;
-      if (hasRefCodable(sourceField)) {
-        return;
-      }
-    }
-    for (var item in targetFields.entries) {
-      var sourceField = sourceFields[item.key]!;
-      var targetField = item.value;
-
-      if (hasIgnoreRefCodable(sourceField)) {
-        continue;
-      }
-
-      var sourceFieldType = sourceField.type;
-      if (sourceFieldType is OmittedTypeAnnotation) {
-        sourceFieldType = await builder.inferType(sourceFieldType);
-        var targetFieldNamedTypeParts = await _refNamedTypeParts(
-            builder, sourceFieldType.code);
-
-        var targetFieldName = targetField.identifier.name;
-        var fieldBuilder = await builder.buildField(targetField.identifier);
-        var publicFieldName = targetFieldName.substring(1);
-
-        fieldBuilder.augment(getter: DeclarationCode.fromParts([
-          ...targetFieldNamedTypeParts,
-          ' get $publicFieldName => $targetFieldName',
-          ';\n',
-        ]),
-        );
-      }
-    }
-  }
-
-  @override
   FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
       MemberDeclarationBuilder builder) async {
     var clazz = await builder.typeDeclarationOf(field.definingType);
     if (hasRefCodable(clazz)) {
-      reportMessageError(builder,
-          '''There is a conflict in the annotation 'RefCodable' of member '${clazz
-              .identifier.name}', it is recommended to delete it.''');
       return;
     }
     if (hasIgnoreRefCodable(field)) {
@@ -199,37 +154,6 @@ macro class RefCodable
 
     builder.declareInType(DeclarationCode.fromParts(codeParts));
   }
-
-  @override
-  FutureOr<void> buildDefinitionForField(FieldDeclaration field,
-      VariableDefinitionBuilder builder) async {
-    var clazz = await builder.typeDeclarationOf(field.definingType);
-    if (hasRefCodable(clazz)) {
-      return;
-    }
-    if (hasIgnoreRefCodable(field)) {
-      return;
-    }
-
-    if (field.type is OmittedTypeAnnotation) {
-      var sourceFieldType = await builder.inferType(
-          field.type as OmittedTypeAnnotation);
-      var sourceFieldName = field.identifier.name;
-      var publicFieldName = '${sourceFieldName}Ref';
-      var targetFieldName = '_$publicFieldName';
-
-      var targetFieldNamedTypeParts = await _refNamedTypeParts(
-          builder, sourceFieldType.code);
-
-      builder.augment(getter: DeclarationCode.fromParts([
-        ...targetFieldNamedTypeParts,
-        ' get $publicFieldName => $targetFieldName',
-        ';\n',
-      ]),
-      );
-    }
-  }
-
 
 }
 

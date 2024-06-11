@@ -9,3 +9,6 @@
 
 ## 2.1.3
 - local macros annotation.
+
+## 2.1.4
+- Optimization error prompt.
