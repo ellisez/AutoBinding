@@ -1,6 +1,4 @@
-import '../macros/auto_binding.dart';
 
-@RefCodable()
 class LoginForm {
   String username = '123';
   String password;
@@ -11,7 +9,6 @@ class LoginForm {
 
 }
 
-@RefCodable()
 class Info {
   String nickName;
   String gender;

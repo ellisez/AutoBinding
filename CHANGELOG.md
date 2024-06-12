@@ -1,14 +1,5 @@
 ## 2.0.12
 - use macros annotation.
 
-## 2.1.0
-- update *.md use macros annotation.
-
-## 2.1.1
-- update *.md use macros annotation.
-
-## 2.1.3
-- local macros annotation.
-
-## 2.1.4
-- Optimization error prompt.
+## 2.0.14
+- release stable version.

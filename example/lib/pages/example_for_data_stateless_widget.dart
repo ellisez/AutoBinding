@@ -3,13 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:auto_binding/auto_binding.dart';
 import 'package:auto_binding/widget/text_field.dart';
 
-import '../macros/auto_binding.dart';
-
 class ExampleForDataStatelessWidget extends DataStatelessWidget {
-  @RefCodable()
   final LoginForm loginForm = LoginForm('', '');
 
-  @IgnoreRefCodable()
   final String abc = '123';
 
   ExampleForDataStatelessWidget({super.key});
@@ -17,12 +13,18 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
   @override
   Widget builder(BuildContext context) {
     var node = Binding.mount(context);
-    loginFormRef;
-    var username = loginForm.usernameRef(node);
+
+    var username = Ref(
+      getter: () => loginForm.username,
+      setter: (String username) => loginForm.username = username,
+    ).call(node);
 
     username.value;
 
-    var password = loginForm.passwordRef(node);
+    var password = Ref(
+      getter: () => loginForm.password,
+      setter: (String password) => loginForm.password = password,
+    ).call(node);
     debugPrint('父视图发生刷新');
     return Scaffold(
       body: Container(
@@ -82,7 +84,7 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                     ElevatedButton(
                       onPressed: () async {
                         username.notifyChange('来自指定值的修改');
-                        loginForm.passwordRef.notifyChange(node, '来自指定值的修改');
+                        password.notifyChange('来自指定值的修改');
                       },
                       style: const ButtonStyle(
                         backgroundColor:
@@ -112,13 +114,17 @@ class ExampleForDataStatelessWidget extends DataStatelessWidget {
                   debugPrint('子视图发生刷新');
                   var node = Binding.mount(subContext);
 
+                  var username = Ref(
+                    getter: () => loginForm.username,
+                    setter: (String username) => loginForm.username = username,
+                  ).call(node);
                   return Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 10),
                       color: Colors.blueGrey,
                       child: Text(
-                        'username = ${loginForm.usernameRef.bindChange(node)}\npassword = ${password.bindChange()}',
+                        'username = ${username.bindChange()}\npassword = ${password.bindChange()}',
                         //style: const TextStyle(color: Colors.white),
                       ));
                 }),
